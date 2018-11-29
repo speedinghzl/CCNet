@@ -40,7 +40,7 @@ To install PyTorch>=0.4.0, please refer to https://github.com/pytorch/pytorch#in
 
 ### Compiling
 
-Some parts of **InPlace-ABN** and **Criss-Cross Attention** have a native CUDA implementation, which must be compiled with the following commands:
+Some parts of **InPlace-ABN** and **Criss-Cross Attention** have native CUDA implementations, which must be compiled with the following commands:
 ```bash
 cd libs
 sh build.sh
