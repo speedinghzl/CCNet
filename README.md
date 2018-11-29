@@ -1,7 +1,7 @@
 # CCNet: Criss-Cross Attention for Semantic Segmentation
 By [Zilong Huang](http://speedinghzl.github.io), [Xinggang Wang](http://www.xinggangw.info/index.htm), [Lichao Huang](https://scholar.google.com/citations?user=F2e_jZMAAAAJ&hl=en), [Chang Huang](https://scholar.google.com/citations?user=IyyEKyIAAAAJ&hl=zh-CN), [Yunchao Wei](https://weiyc.github.io/), [Wenyu Liu](http://mclab.eic.hust.edu.cn/MCWebDisplay/PersonDetails.aspx?Name=Wenyu%20Liu).
 
-This code is a implementation of the experiments on Cityscapes in the [CCNet](https://github.com/speedinghzl/CCNet). The code is developed based on the Pytorch framework.
+This code is a implementation of the experiments on Cityscapes in the [CCNet](https://arxiv.org/abs/1811.11721). The code is developed based on the Pytorch framework.
 
 We implement our method based on open source [pytorch segmentation toolbox](https://github.com/speedinghzl/pytorch-segmentation-toolbox). 
 
@@ -30,7 +30,7 @@ If you find CCNet useful in your research, please consider citing:
     @article{huang2018ccnet,
         title={CCNet: Criss-Cross Attention for Semantic Segmentation},
         author={Huang, Zilong and Wang, Xinggang and Huang, Lichao and Huang, Chang and Wei, Yunchao and Liu, Wenyu},
-        booktitle={Arxiv},
+        journal = {arXiv preprint arXiv:1811.11721},
         year={2018}
     }
     
