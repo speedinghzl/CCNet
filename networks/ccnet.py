@@ -1,5 +1,3 @@
-#import encoding.nn as nn
-#import encoding.functions as F
 import torch.nn as nn
 from torch.nn import functional as F
 import math
@@ -11,9 +9,6 @@ affine_par = True
 import functools
 
 import sys, os
-
-#current_dir = os.path.dirname(os.path.realpath(__file__))
-#sys.path.insert(0, os.path.join(current_dir, '../../inplace_abn'))
 
 from libs import InPlaceABN, InPlaceABNSync
 from cc_attention import PixelwiseAttention, PAM_Module
