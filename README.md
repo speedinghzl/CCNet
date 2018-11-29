@@ -68,3 +68,12 @@ Please download MIT imagenet pretrained [resnet101-imagenet.pth](http://scenepar
 
 ## Acknowledgment
 The work was mainly done during an internship at [Horizon Robotics](http://en.horizon.ai/).
+
+## Thanks to the Third Party Libs
+Self-attention related methods:   
+[Object Context Network](https://github.com/PkuRainBow/OCNet)    
+[Dual Attention Network](https://github.com/junfu1115/DANet)   
+Semantic segmentation toolboxs:   
+[pytorch-segmentation-toolbox](https://github.com/speedinghzl/pytorch-segmentation-toolbox)   
+[semantic-segmentation-pytorch](https://github.com/CSAILVision/semantic-segmentation-pytorch)   
+[PyTorch-Encoding](https://github.com/zhanghang1989/PyTorch-Encoding)
