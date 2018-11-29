@@ -108,10 +108,10 @@ class CrossAttention(nn.Module):
 
         return x
 
-class PixelwiseAttention(nn.Module):
+class CrissCrossAttention(nn.Module):
     """ Pixel-wise attention module"""
     def __init__(self,in_dim):
-        super(PixelwiseAttention,self).__init__()
+        super(CrissCrossAttention,self).__init__()
         self.chanel_in = in_dim
 
         self.query_conv = nn.Conv2d(in_channels = in_dim , out_channels = in_dim//8 , kernel_size= 1)
@@ -166,4 +166,4 @@ class PAM_Module(nn.Module):
 
 
 
-__all__ = ["PAM_Module", "PixelwiseAttention", "CrossAttention", "ca_weight", "ca_map"]
+__all__ = ["PAM_Module", "CrissCrossAttention", "CrossAttention", "ca_weight", "ca_map"]

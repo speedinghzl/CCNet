@@ -11,7 +11,7 @@ import functools
 import sys, os
 
 from libs import InPlaceABN, InPlaceABNSync
-from cc_attention import PixelwiseAttention, PAM_Module
+from cc_attention import CrissCrossAttention, PAM_Module
 
 
 BatchNorm2d = functools.partial(InPlaceABNSync, activation='none')
@@ -75,7 +75,7 @@ class RCCAModule(nn.Module):
         inter_channels = in_channels // 4
         self.conv1a = nn.Sequential(nn.Conv2d(in_channels, inter_channels, 3, padding=1, bias=False),
                                    InPlaceABNSync(inter_channels))
-        self.pc = PixelwiseAttention(inter_channels)
+        self.cca = CrissCrossAttention(inter_channels)
 
         self.conv1b = nn.Sequential(nn.Conv2d(inter_channels, inter_channels, 3, padding=1, bias=False),
                                    InPlaceABNSync(inter_channels))
@@ -90,7 +90,7 @@ class RCCAModule(nn.Module):
     def forward(self, x, recurrence=1):
         output = self.conv1a(x)
         for i in range(recurrence):
-            output = self.pc(output)
+            output = self.cca(output)
         output = self.conv1b(output)
 
         output = self.bottleneck(torch.cat([x, output], 1))
