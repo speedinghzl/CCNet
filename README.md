@@ -11,6 +11,7 @@ Overview of the proposed CCNet for semantic segmentation. The proposed recurrent
 
 ## Visualization of the attention map
 ![Overview of Attention map](http://pixkzddvl.bkt.gdipper.com/attention_vis.png)
+To get a deeper understanding of our RCCA, we visualize the learned attention masks as shown in the figure.  For each input image, we select one point (green cross) and show its corresponding attention maps when **R=1** and **R=2** in columns 2 and 3 respectively. In the figure, only contextual information from the criss-cross path of the target point is capture when $R=1$. By adopting one more criss-cross module, ie, **R=2**  the RCCA can finally aggregate denser and richer contextual information compared with that of **R=1**. Besides, we observe that the attention module could capture semantic similarity and long-range dependencies. 
 
 ### License
 
