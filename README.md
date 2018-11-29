@@ -5,7 +5,7 @@ This code is a implementation of the experiments on Cityscapes in the [CCNet](ht
 We implement our method based on open source [pytorch segmentation toolbox](https://github.com/speedinghzl/pytorch-segmentation-toolbox). 
 
 ## Introduction
-![motivation of CCNet](http://pixkzddvl.bkt.gdipper.com/motivition.png)
+![motivation of CCNet](http://pixkzddvl.bkt.gdipper.com/motivation.png)
 Long-range dependencies can capture useful contextual information to benefit visual understanding problems. In this work, we propose a Criss-Cross Network (CCNet) for obtaining such important information through a more effective and efficient way. Concretely, for each pixel, our CCNet can harvest the contextual information of its surrounding pixels on the criss-cross path through a novel criss-cross attention module. By taking a further recurrent operation, each pixel can finally capture the long-range dependencies from all pixels. Overall, our CCNet is with the following merits: 
 - **GPU memory friendly**  
 - **High computational efficiency** 
