@@ -3,9 +3,14 @@ By [Zilong Huang](http://speedinghzl.github.io), [Xinggang Wang](http://www.xing
 
 This code is a implementation of the experiments on Cityscapes in the [CCNet](https://github.com/speedinghzl/CCNet). The code is developed based on the Pytorch framework.
 
+We implement our method based on open source [pytorch segmentation toolbox](https://github.com/speedinghzl/pytorch-segmentation-toolbox). 
+
 ## Introduction
-![Overview of CCNet]()
+![Overview of CCNet](http://pixkzddvl.bkt.gdipper.com/architecture.pdf)
 Overview of the proposed CCNet for semantic segmentation. The proposed recurrent criss-cross attention takes as input feature maps **H** and output feature maps **H''** which obtain rich and dense contextual information from all pixels. Recurrent criss-cross attention module can be unrolled into R=2 loops, in which all Criss-Cross Attention modules share parameters.
+
+## Visualization of the attention map
+![Overview of Attention map](http://pixkzddvl.bkt.gdipper.com/attention_vis.pdf)
 
 ### License
 
@@ -15,7 +20,7 @@ CCNet is released under the MIT License (refer to the LICENSE file for details).
 
 If you find DSRG useful in your research, please consider citing:
 
-    @inproceedings{huang2018ccnet,
+    @article{huang2018ccnet,
         title={CCNet: Criss-Cross Attention for Semantic Segmentation},
         author={Huang, Zilong and Wang, Xinggang and Huang, Lichao and Huang, Chang and Wei, Yunchao and Liu, Wenyu},
         booktitle={Arxiv},
@@ -52,3 +57,6 @@ Please download MIT imagenet pretrained [resnet101-imagenet.pth](http://scenepar
 ```bash
 ./run_local.sh YOUR_CS_PATH
 ``` 
+
+## Acknowledgment
+The work was mainly done during an internship at [Horizon Robotics](http://en.horizon.ai/).
