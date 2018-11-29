@@ -18,7 +18,7 @@ CCNet is released under the MIT License (refer to the LICENSE file for details).
 
 ### Citing CCNet
 
-If you find DSRG useful in your research, please consider citing:
+If you find CCNet useful in your research, please consider citing:
 
     @article{huang2018ccnet,
         title={CCNet: Criss-Cross Attention for Semantic Segmentation},
