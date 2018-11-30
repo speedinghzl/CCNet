@@ -155,7 +155,7 @@ def predict_multiscale(net, image, tile_size, scales, classes, flip_evaluation, 
         scale_image = torch.from_numpy(scale_image)
         scaled_probs = predict_whole(net, scale_image, tile_size, recurrence)
         if flip_evaluation == 'True':
-            flip_scaled_probs = predict_whole_img(net, scale_image[:,:,:,::-1].copy(), tile_size, recurrence)
+            flip_scaled_probs = predict_whole(net, scale_image[:,:,:,::-1].copy(), tile_size, recurrence)
             scaled_probs = 0.5 * (scaled_probs + flip_scaled_probs[:,::-1,:])
         full_probs += scaled_probs
     full_probs /= len(scales)
