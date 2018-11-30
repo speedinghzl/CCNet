@@ -132,6 +132,7 @@ def predict_sliding(net, image, tile_size, classes, flip_evaluation, recurrence)
     return full_probs
 
 def predict_whole(net, image, tile_size, recurrence):
+    image = torch.from_numpy(image)
     interp = nn.Upsample(size=tile_size, mode='bilinear', align_corners=True)
     prediction = net(image.cuda(), recurrence)
     if isinstance(prediction, list):
@@ -152,9 +153,8 @@ def predict_multiscale(net, image, tile_size, scales, classes, flip_evaluation, 
         scale = float(scale)
         print("Predicting image scaled by %f" % scale)
         scale_image = ndimage.zoom(image, (1.0, 1.0, scale, scale), order=1, prefilter=False)
-        scale_image = torch.from_numpy(scale_image)
         scaled_probs = predict_whole(net, scale_image, tile_size, recurrence)
-        if flip_evaluation == 'True':
+        if flip_evaluation == True:
             flip_scaled_probs = predict_whole(net, scale_image[:,:,:,::-1].copy(), tile_size, recurrence)
             scaled_probs = 0.5 * (scaled_probs + flip_scaled_probs[:,::-1,:])
         full_probs += scaled_probs
