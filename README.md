@@ -66,6 +66,17 @@ Please download MIT imagenet pretrained [resnet101-imagenet.pth](http://scenepar
 ./run_local.sh YOUR_CS_PATH
 ``` 
 
+### models
+We run CCNet with *R=1,2* three times on cityscape dataset separately and report the results in the following table.
+Please note there exist some problems about the validation/testing set accuracy gap (1~2%). You need to run multiple times
+to achieve a small gap or turn on OHEM flag.
+
+| **R** | **mIOU on cityscape val set**           | **Link** |
+|:-------:|:---------------------:|:---------:|
+| 1 | 76.89 & **77.91** & 76.89 | [77.91](https://drive.google.com/open?id=13j06I4e50T41j_2HQl4sksrLZihax94L) |
+| 2 | **79.74** & 79.22 & 78.40 | [79.74](https://drive.google.com/open?id=1IxXm8qxKmfDPVRtT8uuDNEvSQsNVTfLC) |
+| 3 | -              | -    |
+
 ## Acknowledgment
 The work was mainly done during an internship at [Horizon Robotics](http://en.horizon.ai/).
 
