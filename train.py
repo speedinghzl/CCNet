@@ -15,13 +15,13 @@ from tqdm import tqdm
 import os.path as osp
 from networks.ccnet import Res_Deeplab
 from dataset.datasets import CSDataSet
-
+#import matplotlib.pyplot as plt
 import random
 import timeit
 import logging
 from tensorboardX import SummaryWriter
 from utils.utils import decode_labels, inv_preprocess, decode_predictions
-from utils.criterion import CriterionDSN, CriterionOhemDSN
+from utils.criterion import CriterionCrossEntropy, CriterionOhemCrossEntropy, CriterionDSN, CriterionOhemDSN
 from utils.encoding import DataParallelModel, DataParallelCriterion
 
 torch_ver = torch.__version__[:3]
@@ -40,13 +40,13 @@ INPUT_SIZE = '769,769'
 LEARNING_RATE = 1e-2
 MOMENTUM = 0.9
 NUM_CLASSES = 19
-NUM_STEPS = 40000
+NUM_STEPS = 60000
 POWER = 0.9
 RANDOM_SEED = 1234
-RESTORE_FROM = './dataset/MS_DeepLab_resnet_pretrained_init.pth'
+RESTORE_FROM = './dataset/resnet101-imagenet.pth'
 SAVE_NUM_IMAGES = 2
 SAVE_PRED_EVERY = 10000
-SNAPSHOT_DIR = './snapshots/'
+SNAPSHOT_DIR = 'snapshots/'
 WEIGHT_DECAY = 0.0005
 
 def str2bool(v):
@@ -157,6 +157,12 @@ def main():
     # Create network.
     deeplab = Res_Deeplab(num_classes=args.num_classes)
     print(deeplab)
+    # For a small batch size, it is better to keep 
+    # the statistics of the BN layers (running means and variances)
+    # frozen, and to not update the values provided by the pre-trained model. 
+    # If is_training=True, the statistics will be updated during the training.
+    # Note that is_training=False still updates BN parameters gamma (scale) and beta (offset)
+    # if they are presented in var_list of the optimiser definition.
 
     saved_state_dict = torch.load(args.restore_from)
     new_params = deeplab.state_dict().copy()
@@ -170,13 +176,15 @@ def main():
     
     deeplab.load_state_dict(new_params)
 
-
+    #model.eval() # use_global_stats = True
     model = DataParallelModel(deeplab)
+    # model = SelfDataParallel(deeplab)
     model.train()
     model.float()
     # model.apply(set_bn_momentum)
     model.cuda()    
 
+    # criterion = FocalLoss(2)
     if args.ohem:
         criterion = CriterionOhemDSN(thresh=args.ohem_thres, min_kept=args.ohem_keep)
     else:

@@ -8,8 +8,8 @@ from torch.autograd.function import once_differentiable
 import time
 import functools
 
-#from libs import InPlaceABN, InPlaceABNSync
-#BatchNorm2d = functools.partial(InPlaceABNSync, activation='none')
+# from libs import InPlaceABN, InPlaceABNSync
+# BatchNorm2d = functools.partial(InPlaceABNSync, activation='none')
 
 from . import _ext
 
@@ -78,38 +78,8 @@ ca_weight = CA_Weight.apply
 ca_map = CA_Map.apply
 
 
-class CrossAttention(nn.Module):
-    def __init__(self, dim_in, dim_inner, dim_out):
-        super(CrossAttention, self).__init__()
-
-        self.t_func = nn.Conv2d(in_channels=dim_in, out_channels=dim_inner, 
-                kernel_size=1, stride=1, padding=0)
-        self.f_func = nn.Conv2d(in_channels=dim_in, out_channels=dim_inner, 
-                kernel_size=1, stride=1, padding=0)
-        
-        self.g_func = nn.Conv2d(in_channels=dim_in, out_channels=dim_out,
-                kernel_size=1, stride=1, padding=0)
-
-        self.inc = nn.Conv2d(in_channels=dim_out, out_channels=dim_in,
-                kernel_size=1, stride=1, padding=0)
-
-        nn.init.constant_(self.inc.weight, 0)
-        nn.init.constant_(self.inc.bias, 0)
-
-    def forward(self, x):
-        t = self.t_func(x)
-        f = self.f_func(x)
-        g = self.g_func(x)
-
-        w = ca_weight(t, f)
-        w = F.softmax(w, 1)
-        out = ca_map(w, g)
-        x = x + self.inc(out)
-
-        return x
-
 class CrissCrossAttention(nn.Module):
-    """ Pixel-wise attention module"""
+    """ Criss-Cross Attention Module"""
     def __init__(self,in_dim):
         super(CrissCrossAttention,self).__init__()
         self.chanel_in = in_dim
@@ -131,39 +101,6 @@ class CrissCrossAttention(nn.Module):
 
         return out
 
-class PAM_Module(nn.Module):
-    """ Position attention module"""
-    #Ref from SAGAN
-    def __init__(self, in_dim):
-        super(PAM_Module, self).__init__()
-        self.chanel_in = in_dim
-
-        self.query_conv = nn.Conv2d(in_channels=in_dim, out_channels=in_dim//8, kernel_size=1)
-        self.key_conv = nn.Conv2d(in_channels=in_dim, out_channels=in_dim//8, kernel_size=1)
-        self.value_conv = nn.Conv2d(in_channels=in_dim, out_channels=in_dim, kernel_size=1)
-        self.gamma = nn.Parameter(torch.zeros(1))
-
-    def forward(self, x):
-        """
-            inputs :
-                x : input feature maps( B X C X H X W)
-            returns :
-                out : attention value + input feature
-                attention: B X (HxW) X (HxW)
-        """
-        m_batchsize, C, height, width = x.size()
-        proj_query = self.query_conv(x).view(m_batchsize, -1, width*height).permute(0, 2, 1)
-        proj_key = self.key_conv(x).view(m_batchsize, -1, width*height)
-        energy = torch.bmm(proj_query, proj_key)
-        attention = F.softmax(energy, 1)
-        proj_value = self.value_conv(x).view(m_batchsize, -1, width*height)
-
-        out = torch.bmm(proj_value, attention.permute(0, 2, 1))
-        out = out.view(m_batchsize, C, height, width)
-
-        out = self.gamma*out + x
-        return out
 
 
-
-__all__ = ["PAM_Module", "CrissCrossAttention", "CrossAttention", "ca_weight", "ca_map"]
+__all__ = ["CrissCrossAttention", "ca_weight", "ca_map"]

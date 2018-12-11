@@ -1,3 +1,5 @@
+#import encoding.nn as nn
+#import encoding.functions as F
 import torch.nn as nn
 from torch.nn import functional as F
 import math
@@ -11,11 +13,17 @@ import functools
 import sys, os
 
 from libs import InPlaceABN, InPlaceABNSync
-from cc_attention import CrissCrossAttention, PAM_Module
+from cc_attention import CrissCrossAttention
 
 
 BatchNorm2d = functools.partial(InPlaceABNSync, activation='none')
 
+def outS(i):
+    i = int(i)
+    i = (i+1)/2
+    i = int(np.ceil((i+1)/2.0))
+    i = (i+1)/2
+    return i
 
 def conv3x3(in_planes, out_planes, stride=1):
     "3x3 convolution with padding"
@@ -39,13 +47,6 @@ class Bottleneck(nn.Module):
         self.downsample = downsample
         self.dilation = dilation
         self.stride = stride
-    
-    def _sum_each(self, x, y):
-        assert(len(x)==len(y))
-        z = []
-        for i in range(len(x)):
-            z.append(x[i]+y[i])
-        return z
 
     def forward(self, x):
         residual = x
@@ -69,29 +70,56 @@ class Bottleneck(nn.Module):
 
         return out
 
+class PSPModule(nn.Module):
+    """
+    Reference: 
+        Zhao, Hengshuang, et al. *"Pyramid scene parsing network."*
+    """
+    def __init__(self, features, out_features=512, sizes=(1, 2, 3, 6)):
+        super(PSPModule, self).__init__()
+
+        self.stages = []
+        self.stages = nn.ModuleList([self._make_stage(features, out_features, size) for size in sizes])
+        self.bottleneck = nn.Sequential(
+            nn.Conv2d(features+len(sizes)*out_features, out_features, kernel_size=3, padding=1, dilation=1, bias=False),
+            InPlaceABNSync(out_features),
+            nn.Dropout2d(0.1)
+            )
+
+    def _make_stage(self, features, out_features, size):
+        prior = nn.AdaptiveAvgPool2d(output_size=(size, size))
+        conv = nn.Conv2d(features, out_features, kernel_size=1, bias=False)
+        bn = InPlaceABNSync(out_features)
+        return nn.Sequential(prior, conv, bn)
+
+    def forward(self, feats):
+        h, w = feats.size(2), feats.size(3)
+        priors = [F.upsample(input=stage(feats), size=(h, w), mode='bilinear', align_corners=True) for stage in self.stages] + [feats]
+        bottle = self.bottleneck(torch.cat(priors, 1))
+        return bottle
+
 class RCCAModule(nn.Module):
     def __init__(self, in_channels, out_channels, num_classes):
         super(RCCAModule, self).__init__()
         inter_channels = in_channels // 4
-        self.conv1a = nn.Sequential(nn.Conv2d(in_channels, inter_channels, 3, padding=1, bias=False),
+        self.conva = nn.Sequential(nn.Conv2d(in_channels, inter_channels, 3, padding=1, bias=False),
                                    InPlaceABNSync(inter_channels))
         self.cca = CrissCrossAttention(inter_channels)
-
-        self.conv1b = nn.Sequential(nn.Conv2d(inter_channels, inter_channels, 3, padding=1, bias=False),
+        self.convb = nn.Sequential(nn.Conv2d(inter_channels, inter_channels, 3, padding=1, bias=False),
                                    InPlaceABNSync(inter_channels))
 
         self.bottleneck = nn.Sequential(
             nn.Conv2d(in_channels+inter_channels, out_channels, kernel_size=3, padding=1, dilation=1, bias=False),
             InPlaceABNSync(out_channels),
             nn.Dropout2d(0.1),
-            nn.Conv2d(out_channels, num_classes, kernel_size=1, stride=1, padding=0, bias=True)
+            nn.Conv2d(512, num_classes, kernel_size=1, stride=1, padding=0, bias=True)
             )
 
     def forward(self, x, recurrence=1):
-        output = self.conv1a(x)
+        output = self.conva(x)
         for i in range(recurrence):
             output = self.cca(output)
-        output = self.conv1b(output)
+        output = self.convb(output)
 
         output = self.bottleneck(torch.cat([x, output], 1))
         return output
@@ -117,6 +145,7 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=1, dilation=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=1, dilation=4, multi_grid=(1,1,1))
+        #self.layer5 = PSPModule(2048, 512)
         self.head = RCCAModule(2048, 512, num_classes)
 
         self.dsn = nn.Sequential(
@@ -125,6 +154,26 @@ class ResNet(nn.Module):
             nn.Dropout2d(0.1),
             nn.Conv2d(512, num_classes, kernel_size=1, stride=1, padding=0, bias=True)
             )
+
+    def get_learnable_parameters(self, freeze_layers=[True,True,True,True,False,False,False]):
+        lr_parameters = []
+
+        if not freeze_layers[0]:
+            for i in [self.conv1, self.bn1, self.conv2, self.bn2, self.conv3, self.bn3]:
+                params = i.named_parameters()
+                for name, p in params:
+                    print(name)
+                    lr_parameters.append(p)
+
+        layers = [self.layer1, self.layer2, self.layer3, self.layer4, self.layer5, self.layer6]
+        for freeze, layer in zip(freeze_layers[1:], layers):
+            if not freeze:
+                params = layer.named_parameters()
+                for name, p in params:
+                    print(name)
+                    lr_parameters.append(p)
+
+        return lr_parameters
 
     def _make_layer(self, block, planes, blocks, stride=1, dilation=1, multi_grid=1):
         downsample = None
