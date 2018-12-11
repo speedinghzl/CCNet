@@ -157,34 +157,23 @@ def main():
     # Create network.
     deeplab = Res_Deeplab(num_classes=args.num_classes)
     print(deeplab)
-    # For a small batch size, it is better to keep 
-    # the statistics of the BN layers (running means and variances)
-    # frozen, and to not update the values provided by the pre-trained model. 
-    # If is_training=True, the statistics will be updated during the training.
-    # Note that is_training=False still updates BN parameters gamma (scale) and beta (offset)
-    # if they are presented in var_list of the optimiser definition.
 
     saved_state_dict = torch.load(args.restore_from)
     new_params = deeplab.state_dict().copy()
     for i in saved_state_dict:
-        #Scale.layer5.conv2d_list.3.weight
         i_parts = i.split('.')
-        # print i_parts
-        # if not i_parts[1]=='layer5':
         if not i_parts[0]=='fc':
             new_params['.'.join(i_parts[0:])] = saved_state_dict[i] 
     
     deeplab.load_state_dict(new_params)
 
-    #model.eval() # use_global_stats = True
+
     model = DataParallelModel(deeplab)
-    # model = SelfDataParallel(deeplab)
     model.train()
     model.float()
     # model.apply(set_bn_momentum)
     model.cuda()    
 
-    # criterion = FocalLoss(2)
     if args.ohem:
         criterion = CriterionOhemDSN(thresh=args.ohem_thres, min_kept=args.ohem_keep)
     else:
@@ -205,9 +194,6 @@ def main():
     optimizer = optim.SGD([{'params': filter(lambda p: p.requires_grad, deeplab.parameters()), 'lr': args.learning_rate }], 
                 lr=args.learning_rate, momentum=args.momentum,weight_decay=args.weight_decay)
     optimizer.zero_grad()
-
-    interp = nn.Upsample(size=input_size, mode='bilinear', align_corners=True)
-
 
     for i_iter, batch in enumerate(trainloader):
         i_iter += args.start_iters
