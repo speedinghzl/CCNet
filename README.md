@@ -1,11 +1,11 @@
 # CCNet: Criss-Cross Attention for Semantic Segmentation
 By [Zilong Huang](http://speedinghzl.github.io), [Xinggang Wang](http://www.xinggangw.info/index.htm), [Lichao Huang](https://scholar.google.com/citations?user=F2e_jZMAAAAJ&hl=en), [Chang Huang](https://scholar.google.com/citations?user=IyyEKyIAAAAJ&hl=zh-CN), [Yunchao Wei](https://weiyc.github.io/), [Wenyu Liu](http://mclab.eic.hust.edu.cn/MCWebDisplay/PersonDetails.aspx?Name=Wenyu%20Liu).
 
-This code is a implementation of the experiments on Cityscapes in the [CCNet](https://github.com/speedinghzl/CCNet). The code is developed based on the Pytorch framework.
-
+This code is a implementation of the experiments on Cityscapes in the [CCNet](https://arxiv.org/abs/1811.11721). 
 We implement our method based on open source [pytorch segmentation toolbox](https://github.com/speedinghzl/pytorch-segmentation-toolbox). 
 
 ## Introduction
+![motivation of CCNet](http://pixkzddvl.bkt.gdipper.com/motivation.png)
 Long-range dependencies can capture useful contextual information to benefit visual understanding problems. In this work, we propose a Criss-Cross Network (CCNet) for obtaining such important information through a more effective and efficient way. Concretely, for each pixel, our CCNet can harvest the contextual information of its surrounding pixels on the criss-cross path through a novel criss-cross attention module. By taking a further recurrent operation, each pixel can finally capture the long-range dependencies from all pixels. Overall, our CCNet is with the following merits: 
 - **GPU memory friendly**  
 - **High computational efficiency** 
@@ -17,7 +17,7 @@ Overview of the proposed CCNet for semantic segmentation. The proposed recurrent
 
 ## Visualization of the attention map
 ![Overview of Attention map](http://pixkzddvl.bkt.gdipper.com/attention_vis.png)
-To get a deeper understanding of our RCCA, we visualize the learned attention masks as shown in the figure.  For each input image, we select one point (green cross) and show its corresponding attention maps when **R=1** and **R=2** in columns 2 and 3 respectively. In the figure, only contextual information from the criss-cross path of the target point is capture when $R=1$. By adopting one more criss-cross module, ie, **R=2**  the RCCA can finally aggregate denser and richer contextual information compared with that of **R=1**. Besides, we observe that the attention module could capture semantic similarity and long-range dependencies. 
+To get a deeper understanding of our RCCA, we visualize the learned attention masks as shown in the figure.  For each input image, we select one point (green cross) and show its corresponding attention maps when **R=1** and **R=2** in columns 2 and 3 respectively. In the figure, only contextual information from the criss-cross path of the target point is capture when **R=1**. By adopting one more criss-cross module, ie, **R=2**  the RCCA can finally aggregate denser and richer contextual information compared with that of **R=1**. Besides, we observe that the attention module could capture semantic similarity and long-range dependencies. 
 
 ### License
 
@@ -30,13 +30,14 @@ If you find CCNet useful in your research, please consider citing:
     @article{huang2018ccnet,
         title={CCNet: Criss-Cross Attention for Semantic Segmentation},
         author={Huang, Zilong and Wang, Xinggang and Huang, Lichao and Huang, Chang and Wei, Yunchao and Liu, Wenyu},
-        booktitle={Arxiv},
+        journal = {arXiv preprint arXiv:1811.11721},
         year={2018}
     }
     
 ### Requirements
 
-To install PyTorch>=0.4.0, please refer to https://github.com/pytorch/pytorch#installation.
+To install PyTorch>=0.4.0, please refer to https://github.com/pytorch/pytorch#installation.   
+4 x 12G GPUs (_e.g._ TITAN XP)
 
 ### Compiling
 
@@ -67,3 +68,12 @@ Please download MIT imagenet pretrained [resnet101-imagenet.pth](http://scenepar
 
 ## Acknowledgment
 The work was mainly done during an internship at [Horizon Robotics](http://en.horizon.ai/).
+
+## Thanks to the Third Party Libs
+Self-attention related methods:   
+[Object Context Network](https://github.com/PkuRainBow/OCNet)    
+[Dual Attention Network](https://github.com/junfu1115/DANet)   
+Semantic segmentation toolboxs:   
+[pytorch-segmentation-toolbox](https://github.com/speedinghzl/pytorch-segmentation-toolbox)   
+[semantic-segmentation-pytorch](https://github.com/CSAILVision/semantic-segmentation-pytorch)   
+[PyTorch-Encoding](https://github.com/zhanghang1989/PyTorch-Encoding)
