@@ -219,7 +219,7 @@ def main():
         size = size[0].numpy()
         with torch.no_grad():
             if args.whole:
-                output = predict_multiscale(model, image, input_size, [0.75, 1.0, 1.25, 1.5, 1.75, 2.0], args.num_classes, True, args.recurrence)
+                output = predict_multiscale(model, image, input_size, [0.75, 1.0, 1.25], args.num_classes, True, args.recurrence)
             else:
                 output = predict_sliding(model, image.numpy(), input_size, args.num_classes, True, args.recurrence)
         # padded_prediction = model(Variable(image, volatile=True).cuda())
