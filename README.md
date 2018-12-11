@@ -73,7 +73,7 @@ to achieve a small gap or turn on OHEM flag.
 
 | **R** | **mIOU on cityscape val set**           | **Link** |
 |:-------:|:---------------------:|:---------:|
-| 1 | 77.22 & **77.91** & 76.89 | [77.91](https://drive.google.com/open?id=13j06I4e50T41j_2HQl4sksrLZihax94L) |
+| 1 | 77.31 & **77.91** & 76.89 | [77.91](https://drive.google.com/open?id=13j06I4e50T41j_2HQl4sksrLZihax94L) |
 | 2 | **79.74** & 79.22 & 78.40 | [79.74](https://drive.google.com/open?id=1IxXm8qxKmfDPVRtT8uuDNEvSQsNVTfLC) |
 | 3 | -              | -    |
 
