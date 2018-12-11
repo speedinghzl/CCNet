@@ -91,7 +91,7 @@ def pad_image(img, target_size):
 def predict_sliding(net, image, tile_size, classes, flip_evaluation, recurrence):
     interp = nn.Upsample(size=tile_size, mode='bilinear', align_corners=True)
     image_size = image.shape
-    overlap = 1/3
+    overlap = 1.0/3.0
 
     stride = ceil(tile_size[0] * (1 - overlap))
     tile_rows = int(ceil((image_size[2] - tile_size[0]) / stride) + 1)  # strided convolution formula
