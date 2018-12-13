@@ -75,7 +75,7 @@ Please note there exist some problems about the validation/testing set accuracy 
 to achieve a small gap or turn on OHEM flag.
 
 We train all the models on fine training set and use the single scale for testing.
-The trained model with **R=2 79.74**  can also achieve about **79** mIOU on **cityscape test set** with single scale testing (for saving time, we use the whole image as input).
+The trained model with **R=2 79.74**  can also achieve about **79.01** mIOU on **cityscape test set** with single scale testing (for saving time, we use the whole image as input).
 
 | **R** | **mIOU on cityscape val set (single scale)**           | **Link** |
 |:-------:|:---------------------:|:---------:|
