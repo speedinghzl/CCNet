@@ -4,6 +4,10 @@ By [Zilong Huang](http://speedinghzl.github.io), [Xinggang Wang](http://www.xing
 This code is a implementation of the experiments on Cityscapes in the [CCNet](https://arxiv.org/abs/1811.11721). 
 We implement our method based on open source [pytorch segmentation toolbox](https://github.com/speedinghzl/pytorch-segmentation-toolbox). 
 
+**Update on 2018/12/10. Renew the code and release trained models with R=1,2. The trained model with R=2 achieves 79.74% on val set and 79.01% on test set with single scale testing.** 
+
+**Update on 2018/11/28. Release Code.**
+
 ## Introduction
 ![motivation of CCNet](http://pixkzddvl.bkt.gdipper.com/motivation.png)
 Long-range dependencies can capture useful contextual information to benefit visual understanding problems. In this work, we propose a Criss-Cross Network (CCNet) for obtaining such important information through a more effective and efficient way. Concretely, for each pixel, our CCNet can harvest the contextual information of its surrounding pixels on the criss-cross path through a novel criss-cross attention module. By taking a further recurrent operation, each pixel can finally capture the long-range dependencies from all pixels. Overall, our CCNet is with the following merits: 
