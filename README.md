@@ -69,14 +69,32 @@ Plesae download cityscapes dataset and unzip the dataset into `YOUR_CS_PATH`.
 Please download MIT imagenet pretrained [resnet101-imagenet.pth](http://sceneparsing.csail.mit.edu/model/pretrained_resnet/resnet101-imagenet.pth), and put it into `dataset` folder.
 
 ### Training and Evaluation
+Training script.
+```bash
+python train.py --data-dir ${YOUR_CS_PATH} --random-mirror --random-scale --restore-from ./dataset/resnet101-imagenet.pth --gpu 0,1,2,3 --learning-rate 1e-2 --input-size 769,769 --weight-decay 1e-4 --batch-size 8 --num-steps 60000 --recurrence 2
+``` 
+
+【**Recommend**】You can also open the OHEM flag to reduce the performance gap between val and test set.
+```bash
+python train.py --data-dir ${YOUR_CS_PATH} --random-mirror --random-scale --restore-from ./dataset/resnet101-imagenet.pth --gpu 0,1,2,3 --learning-rate 1e-2 --input-size 769,769 --weight-decay 1e-4 --batch-size 8 --num-steps 60000 --recurrence 2 --ohem 1 --ohem-thres 0.7 --ohem-keep 100000
+``` 
+
+Evaluation script.
+```bash
+python evaluate.py --data-dir ${YOUR_CS_PATH} --restore-from snapshots/CS_scenes_60000.pth --gpu 0 --recurrence 2
+``` 
+
+All in one.
 ```bash
 ./run_local.sh YOUR_CS_PATH
 ``` 
 
-### models
+
+### Models
 We run CCNet with *R=1,2* three times on cityscape dataset separately and report the results in the following table.
 Please note there exist some problems about the validation/testing set accuracy gap (1~2%). You need to run multiple times
-to achieve a small gap or turn on OHEM flag.
+to achieve a small gap or turn on OHEM flag. Turning on OHEM flag also can improve the performance on the val set. In general，
+I recommend you use OHEM in training step.
 
 We train all the models on fine training set and use the single scale for testing.
 The trained model with **R=2 79.74**  can also achieve about **79.01** mIOU on **cityscape test set** with single scale testing (for saving time, we use the whole image as input).
@@ -85,7 +103,7 @@ The trained model with **R=2 79.74**  can also achieve about **79.01** mIOU on *
 |:-------:|:---------------------:|:---------:|
 | 1 | 77.31 & **77.91** & 76.89 | [77.91](https://drive.google.com/open?id=13j06I4e50T41j_2HQl4sksrLZihax94L) |
 | 2 | **79.74** & 79.22 & 78.40 | [79.74](https://drive.google.com/open?id=1IxXm8qxKmfDPVRtT8uuDNEvSQsNVTfLC) |
-| 3 | -              | -    |
+| 2+OHEM | 78.67 & **80.00** & 79.83  | [80.00](https://drive.google.com/open?id=1eiX1Xf1o16DvQc3lkFRi4-Dk7IBVspUQ) |
 
 ## Acknowledgment
 The work was mainly done during an internship at [Horizon Robotics](http://en.horizon.ai/).
