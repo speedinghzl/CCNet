@@ -9,18 +9,18 @@ We implement our method based on open source [pytorch segmentation toolbox](http
 **Update on 2018/11/28. Release Code.**
 
 ## Introduction
-![motivation of CCNet](http://pixkzddvl.bkt.gdipper.com/motivation.png)
+![motivation of CCNet](https://user-images.githubusercontent.com/4509744/50546460-7df6ed00-0bed-11e9-9340-d026373b2cbe.png)
 Long-range dependencies can capture useful contextual information to benefit visual understanding problems. In this work, we propose a Criss-Cross Network (CCNet) for obtaining such important information through a more effective and efficient way. Concretely, for each pixel, our CCNet can harvest the contextual information of its surrounding pixels on the criss-cross path through a novel criss-cross attention module. By taking a further recurrent operation, each pixel can finally capture the long-range dependencies from all pixels. Overall, our CCNet is with the following merits: 
 - **GPU memory friendly**  
 - **High computational efficiency** 
 - **The state-of-the-art performance** 
 
 ## Architecture
-![Overview of CCNet](http://pixkzddvl.bkt.gdipper.com/architecture.png)
+![Overview of CCNet](https://user-images.githubusercontent.com/4509744/50546462-851dfb00-0bed-11e9-962a-bffab2401997.png)
 Overview of the proposed CCNet for semantic segmentation. The proposed recurrent criss-cross attention takes as input feature maps **H** and output feature maps **H''** which obtain rich and dense contextual information from all pixels. Recurrent criss-cross attention module can be unrolled into R=2 loops, in which all Criss-Cross Attention modules share parameters.
 
 ## Visualization of the attention map
-![Overview of Attention map](http://pixkzddvl.bkt.gdipper.com/attention_vis.png)
+![Overview of Attention map](https://user-images.githubusercontent.com/4509744/50546463-88b18200-0bed-11e9-9f87-c74327c11a68.png)
 To get a deeper understanding of our RCCA, we visualize the learned attention masks as shown in the figure.  For each input image, we select one point (green cross) and show its corresponding attention maps when **R=1** and **R=2** in columns 2 and 3 respectively. In the figure, only contextual information from the criss-cross path of the target point is capture when **R=1**. By adopting one more criss-cross module, ie, **R=2**  the RCCA can finally aggregate denser and richer contextual information compared with that of **R=1**. Besides, we observe that the attention module could capture semantic similarity and long-range dependencies. 
 
 ### License
