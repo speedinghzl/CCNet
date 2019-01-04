@@ -40,7 +40,7 @@ If you find CCNet useful in your research, please consider citing:
     
 ### Requirements
 
-To install PyTorch>=0.4.0, please refer to https://github.com/pytorch/pytorch#installation.   
+To install PyTorch==0.4.0 or 0.4.1, please refer to https://github.com/pytorch/pytorch#installation.   
 4 x 12G GPUs (_e.g._ TITAN XP)  
 Python 3.6   
 gcc (GCC) 4.8.5  
