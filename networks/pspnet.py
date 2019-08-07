@@ -9,9 +9,10 @@ affine_par = True
 import functools
 
 import sys, os
+from utils.pyt_utils import load_model
 
-from libs import InPlaceABN, InPlaceABNSync
-BatchNorm2d = functools.partial(InPlaceABNSync, activation='none')
+from inplace_abn import InPlaceABN, InPlaceABNSync
+BatchNorm2d = functools.partial(InPlaceABNSync, activation='identity')
 
 def conv3x3(in_planes, out_planes, stride=1):
     "3x3 convolution with padding"
@@ -82,12 +83,12 @@ class PSPModule(nn.Module):
 
     def forward(self, feats):
         h, w = feats.size(2), feats.size(3)
-        priors = [F.upsample(input=stage(feats), size=(h, w), mode='bilinear', align_corners=True) for stage in self.stages] + [feats]
+        priors = [F.interpolate(input=stage(feats), size=(h, w), mode='bilinear', align_corners=True) for stage in self.stages] + [feats]
         bottle = self.bottleneck(torch.cat(priors, 1))
         return bottle
 
 class ResNet(nn.Module):
-    def __init__(self, block, layers, num_classes):
+    def __init__(self, block, layers, num_classes, criterion):
         self.inplanes = 128
         super(ResNet, self).__init__()
         self.conv1 = conv3x3(3, 64, stride=2)
@@ -117,6 +118,7 @@ class ResNet(nn.Module):
             nn.Dropout2d(0.1),
             nn.Conv2d(512, num_classes, kernel_size=1, stride=1, padding=0, bias=True)
             )
+        self.criterion = criterion
 
     def _make_layer(self, block, planes, blocks, stride=1, dilation=1, multi_grid=1):
         downsample = None
@@ -135,7 +137,7 @@ class ResNet(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def forward(self, x):
+    def forward(self, x, labels=None):
         x = self.relu1(self.bn1(self.conv1(x)))
         x = self.relu2(self.bn2(self.conv2(x)))
         x = self.relu3(self.bn3(self.conv3(x)))
@@ -146,10 +148,32 @@ class ResNet(nn.Module):
         x_dsn = self.dsn(x)
         x = self.layer4(x)
         x = self.head(x)
-        return [x, x_dsn]
+        outs = [x, x_dsn]
+
+        if self.criterion is not None and labels is not None:
+            return self.criterion(outs, labels)
+        else:
+            return outs
+         
 
 
-def Res_Deeplab(num_classes=21):
-    model = ResNet(Bottleneck,[3, 4, 23, 3], num_classes)
+def Seg_Model(num_classes, criterion=None, pretrained_model=None):
+    model = ResNet(Bottleneck,[3, 4, 23, 3], num_classes, criterion)
+
+    if pretrained_model is not None:
+        model = load_model(model, pretrained_model)
+        # device = torch.device('cpu')
+        # saved_state_dict = torch.load(pretrained_model, map_location=device)
+        # new_params = model.state_dict().copy()
+        # for i in saved_state_dict:
+        #     #Scale.layer5.conv2d_list.3.weight
+        #     i_parts = i.split('.')
+        #     # print i_parts
+        #     # if not i_parts[1]=='layer5':
+        #     if not i_parts[0]=='fc':
+        #         new_params['.'.join(i_parts[0:])] = saved_state_dict[i] 
+        
+        # model.load_state_dict(new_params)
+
     return model
 
