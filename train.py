@@ -110,9 +110,9 @@ def get_parser():
     parser.add_argument("--model", type=str, default='None',
                         help="choose model.")
     parser.add_argument("--num-workers", type=int, default=8,
+                        help="choose the number of workers.")
+    parser.add_argument("--recurrence", type=int, default=0,
                         help="choose the number of recurrence.")
-    parser.add_argument("--ft", type=bool, default=False,
-                        help="fine-tune the model with large input size.")
 
     parser.add_argument("--ohem", type=str2bool, default='False',
                         help="use hard negative mining")
@@ -174,7 +174,7 @@ def main():
         #         pretrained_model=args.restore_from)
         seg_model = eval('networks.' + args.model + '.Seg_Model')(
             num_classes=args.num_classes, criterion=criterion,
-            pretrained_model=args.restore_from
+            pretrained_model=args.restore_from, recurrence=args.recurrence
         )
         # seg_model.init_weights()
 

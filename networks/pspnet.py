@@ -157,7 +157,7 @@ class ResNet(nn.Module):
          
 
 
-def Seg_Model(num_classes, criterion=None, pretrained_model=None):
+def Seg_Model(num_classes, criterion=None, pretrained_model=None, **kwargs):
     model = ResNet(Bottleneck,[3, 4, 23, 3], num_classes, criterion)
 
     if pretrained_model is not None:

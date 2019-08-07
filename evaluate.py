@@ -210,7 +210,7 @@ def main():
             input_size = (h, w)
 
         seg_model = eval('networks.' + args.model + '.Seg_Model')(
-            num_classes=args.num_classes
+            num_classes=args.num_classes, recurrence=args.recurrence
         )
         
         load_model(seg_model, args.restore_from)
