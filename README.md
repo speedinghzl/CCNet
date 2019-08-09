@@ -34,8 +34,8 @@ If you find CCNet useful in your research, please consider citing:
     @article{huang2018ccnet,
         title={CCNet: Criss-Cross Attention for Semantic Segmentation},
         author={Huang, Zilong and Wang, Xinggang and Huang, Lichao and Huang, Chang and Wei, Yunchao and Liu, Wenyu},
-        journal = {arXiv preprint arXiv:1811.11721},
-        year={2018}
+        booktitle={ICCV},
+        year={2019}
     }
     
 ### Requirements
