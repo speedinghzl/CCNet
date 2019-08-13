@@ -17,7 +17,7 @@ ffi = create_extension(
     relative_to=__file__,
     with_cuda=with_cuda,
     extra_objects=extra_objects,
-    extra_compile_args=["-std=c99"]
+    extra_compile_args=["-std=c++11"]
 )
 
 if __name__ == '__main__':
