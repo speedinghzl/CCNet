@@ -5,7 +5,7 @@ This code is a implementation of the experiments on Cityscapes in the [CCNet](ht
 We implement our method based on open source [pytorch segmentation toolbox](https://github.com/speedinghzl/pytorch-segmentation-toolbox). 
 
 
-**This CCNet version supports Pytorch 1.0 or later, thanks [Qiang Zhou](https://github.com/sydney0zq) for upgrading code of cc_attention.**
+**This CCNet version supports Pytorch 1.0 or later, thanks [Qiang Zhou](https://github.com/sydney0zq) for upgrading the code of cc_attention.**
 
 **Update on 2018/12/10. Renew the code and release trained models with R=1,2. The trained model with R=2 achieves 79.74% on val set and 79.01% on test set with single scale testing.** 
 
