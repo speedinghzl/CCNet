@@ -30,10 +30,10 @@ CUDA_VISIBLE_DEVICES=${GPU_IDS} python -m torch.distributed.launch --nproc_per_n
   --ohem ${OHEM} \
   --snapshot-dir ${SNAPSHOT_HOME}/${MODEL}
 
-CUDA_VISIBLE_DEVICES=${GPU_IDS} python -m torch.distributed.launch --nproc_per_node=4 evaluate.py \
-  --data-dir ${CS_PATH} \
-  --model ${MODEL} \
-  --input-size ${INPUT_SIZE} \
-  --batch-size 4 \
-  --restore-from ${SNAPSHOT_HOME}/${MODEL}/CS_scenes_${STEPS}.pth \
-  --gpu 0
+#CUDA_VISIBLE_DEVICES=${GPU_IDS} python -m torch.distributed.launch --nproc_per_node=4 evaluate.py \
+#  --data-dir ${CS_PATH} \
+#  --model ${MODEL} \
+#  --input-size ${INPUT_SIZE} \
+#  --batch-size 4 \
+#  --restore-from ${SNAPSHOT_HOME}/${MODEL}/CS_scenes_${STEPS}.pth \
+#  --gpu 0
