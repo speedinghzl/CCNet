@@ -7,6 +7,7 @@ import torch
 import torchvision
 import cv2
 from torch.utils import data
+from utils.zipreader import ZipReader
 
 
 class VOCDataSet(data.Dataset):
@@ -32,6 +33,7 @@ class VOCDataSet(data.Dataset):
                 "label": label_file,
                 "name": name
             })
+        self.reader = ZipReader()
 
     def __len__(self):
         return len(self.files)
@@ -44,8 +46,8 @@ class VOCDataSet(data.Dataset):
 
     def __getitem__(self, index):
         datafiles = self.files[index]
-        image = cv2.imread(datafiles["img"], cv2.IMREAD_COLOR)
-        label = cv2.imread(datafiles["label"], cv2.IMREAD_GRAYSCALE)
+        image = self.reader.imread(datafiles['img'], 'color')
+        label = self.reader.imread(datafiles['label'], 'grayscale')
         size = image.shape
         name = datafiles["name"]
         if self.scale:
@@ -96,13 +98,14 @@ class VOCDataTestSet(data.Dataset):
             self.files.append({
                 "img": img_file
             })
+        self.reader = ZipReader()
 
     def __len__(self):
         return len(self.files)
 
     def __getitem__(self, index):
         datafiles = self.files[index]
-        image = cv2.imread(datafiles["img"], cv2.IMREAD_COLOR)
+        image = self.reader.imread(datafiles["img"], 'color')
         size = image.shape
         name = osp.splitext(osp.basename(datafiles["img"]))[0]
         image = np.asarray(image, np.float32)
@@ -150,6 +153,7 @@ class CSDataSet(data.Dataset):
                               18: ignore_label, 19: 6, 20: 7, 21: 8, 22: 9, 23: 10, 24: 11, 25: 12, 26: 13, 27: 14,
                               28: 15, 29: ignore_label, 30: ignore_label, 31: 16, 32: 17, 33: 18}
         print('{} images are loaded!'.format(len(self.img_ids)))
+        self.reader = ZipReader()
 
     def __len__(self):
         return len(self.files)
@@ -172,8 +176,8 @@ class CSDataSet(data.Dataset):
 
     def __getitem__(self, index):
         datafiles = self.files[index]
-        image = cv2.imread(datafiles["img"], cv2.IMREAD_COLOR)
-        label = cv2.imread(datafiles["label"], cv2.IMREAD_GRAYSCALE)
+        image = self.reader.imread(datafiles['img'], 'color')
+        label = self.reader.imread(datafiles['label'], 'grayscale')
         label = self.id2trainId(label)
         size = image.shape
         name = datafiles["name"]
@@ -227,13 +231,14 @@ class CSDataTestSet(data.Dataset):
             self.files.append({
                 "img": img_file
             })
+        self.reader = ZipReader()
 
     def __len__(self):
         return len(self.files)
 
     def __getitem__(self, index):
         datafiles = self.files[index]
-        image = cv2.imread(datafiles["img"], cv2.IMREAD_COLOR)
+        image = self.reader.imread(datafiles["img"], 'color')
         size = image.shape
         name = osp.splitext(osp.basename(datafiles["img"]))[0]
         image = np.asarray(image, np.float32)
@@ -249,45 +254,46 @@ class CSDataTestSet(data.Dataset):
         image = image.transpose((2, 0, 1))
         return image, name, size
 
-class CSDataTestSet(data.Dataset):
-    def __init__(self, root, list_path, crop_size=(505, 505)):
-        self.root = root
-        self.list_path = list_path
-        self.crop_h, self.crop_w = crop_size
-        # self.mean_bgr = np.array([104.00698793, 116.66876762, 122.67891434])
-        self.img_ids = [i_id.strip().split()[0] for i_id in open(list_path)]
-        self.files = [] 
-        # for split in ["train", "trainval", "val"]:
-        for image_path in self.img_ids:
-            name = osp.splitext(osp.basename(image_path))[0]
-            img_file = osp.join(self.root, image_path)
-            self.files.append({
-                "img": img_file
-            })
-
-    def __len__(self):
-        return len(self.files)
-
-    def __getitem__(self, index):
-        datafiles = self.files[index]
-        image = cv2.imread(datafiles["img"], cv2.IMREAD_COLOR)
-        image = cv2.resize(image, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
-        size = image.shape
-        name = osp.splitext(osp.basename(datafiles["img"]))[0]
-        image = np.asarray(image, np.float32)
-        image = (image - image.min()) / (image.max() - image.min())
-        
-        img_h, img_w, _ = image.shape
-        pad_h = max(self.crop_h - img_h, 0)
-        pad_w = max(self.crop_w - img_w, 0)
-        if pad_h > 0 or pad_w > 0:
-            image = cv2.copyMakeBorder(image, 0, pad_h, 0, 
-                pad_w, cv2.BORDER_CONSTANT, 
-                value=(0.0, 0.0, 0.0))
-        image = image.transpose((2, 0, 1))
-        return image, np.array(size), name
+# class CSDataTestSet(data.Dataset):
+#     def __init__(self, root, list_path, crop_size=(505, 505)):
+#         self.root = root
+#         self.list_path = list_path
+#         self.crop_h, self.crop_w = crop_size
+#         # self.mean_bgr = np.array([104.00698793, 116.66876762, 122.67891434])
+#         self.img_ids = [i_id.strip().split()[0] for i_id in open(list_path)]
+#         self.files = []
+#         # for split in ["train", "trainval", "val"]:
+#         for image_path in self.img_ids:
+#             name = osp.splitext(osp.basename(image_path))[0]
+#             img_file = osp.join(self.root, image_path)
+#             self.files.append({
+#                 "img": img_file
+#             })
+#
+#     def __len__(self):
+#         return len(self.files)
+#
+#     def __getitem__(self, index):
+#         datafiles = self.files[index]
+#         image = cv2.imread(datafiles["img"], cv2.IMREAD_COLOR)
+#         image = cv2.resize(image, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
+#         size = image.shape
+#         name = osp.splitext(osp.basename(datafiles["img"]))[0]
+#         image = np.asarray(image, np.float32)
+#         image = (image - image.min()) / (image.max() - image.min())
+#
+#         img_h, img_w, _ = image.shape
+#         pad_h = max(self.crop_h - img_h, 0)
+#         pad_w = max(self.crop_w - img_w, 0)
+#         if pad_h > 0 or pad_w > 0:
+#             image = cv2.copyMakeBorder(image, 0, pad_h, 0,
+#                 pad_w, cv2.BORDER_CONSTANT,
+#                 value=(0.0, 0.0, 0.0))
+#         image = image.transpose((2, 0, 1))
+#         return image, np.array(size), name
 
 if __name__ == '__main__':
+    import matplotlib.pyplot as plt
     dst = VOCDataSet("./data", is_transform=True)
     trainloader = data.DataLoader(dst, batch_size=4)
     for i, data in enumerate(trainloader):

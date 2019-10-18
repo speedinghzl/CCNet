@@ -1,0 +1,11 @@
+.idea/
+__pycache__/
+build/
+
+*.o
+*.so
+*.ninja
+*.pth
+*.pyc
+
+snapshots

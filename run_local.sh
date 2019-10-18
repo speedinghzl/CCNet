@@ -1,7 +1,5 @@
 #!/bin/bash
 uname -a
-#date
-#env
 date
 
 CS_PATH=$1

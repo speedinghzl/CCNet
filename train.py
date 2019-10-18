@@ -225,13 +225,13 @@ def main():
                 print_str = 'Epoch{}/Iters{}'.format(epoch, global_iteration) \
                         + ' Iter{}/{}:'.format(idx + 1, len(train_loader)) \
                         + ' lr=%.2e' % lr \
-                        + ' loss=%.2f' % reduce_loss.item()
+                        + ' loss=%.4f' % reduce_loss.item()
 
                 pbar.set_description(print_str, refresh=False)
 
                 if (not engine.distributed) or (engine.distributed and engine.local_rank == 0):
                     if global_iteration % args.save_pred_every == 0 or global_iteration >= args.num_steps:
-                        print('taking snapshot ...')
+                        print('Taking Snapshot ...')
                         torch.save(seg_model.state_dict(),osp.join(args.snapshot_dir, 'CS_scenes_'+str(global_iteration)+'.pth')) 
 
                 if global_iteration >= args.num_steps:

@@ -1,10 +1,10 @@
 ninja_required_version = 1.3
 cxx = c++
-nvcc = /usr/local/cuda-9.2/bin/nvcc
+nvcc = /usr/local/cuda/bin/nvcc
 
-cflags = -DTORCH_EXTENSION_NAME=rcca -DTORCH_API_INCLUDE_EXTENSION_H -isystem /home/users/qiang.zhou/anaconda3/lib/python3.6/site-packages/torch/lib/include -isystem /home/users/qiang.zhou/anaconda3/lib/python3.6/site-packages/torch/lib/include/torch/csrc/api/include -isystem /home/users/qiang.zhou/anaconda3/lib/python3.6/site-packages/torch/lib/include/TH -isystem /home/users/qiang.zhou/anaconda3/lib/python3.6/site-packages/torch/lib/include/THC -isystem /usr/local/cuda-9.2/include -isystem /usr/local/cuda-9.2/include -isystem /home/users/qiang.zhou/anaconda3/include/python3.6m -D_GLIBCXX_USE_CXX11_ABI=0 -fPIC -std=c++11 -O3
-cuda_flags = -DTORCH_EXTENSION_NAME=rcca -DTORCH_API_INCLUDE_EXTENSION_H -isystem /home/users/qiang.zhou/anaconda3/lib/python3.6/site-packages/torch/lib/include -isystem /home/users/qiang.zhou/anaconda3/lib/python3.6/site-packages/torch/lib/include/torch/csrc/api/include -isystem /home/users/qiang.zhou/anaconda3/lib/python3.6/site-packages/torch/lib/include/TH -isystem /home/users/qiang.zhou/anaconda3/lib/python3.6/site-packages/torch/lib/include/THC -isystem /usr/local/cuda-9.2/include -isystem /usr/local/cuda-9.2/include -isystem /home/users/qiang.zhou/anaconda3/include/python3.6m -D_GLIBCXX_USE_CXX11_ABI=0 -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__ --compiler-options '-fPIC' --expt-extended-lambda -std=c++11
-ldflags = -shared -L/usr/local/cuda-9.2/lib64 -lcudart -L/usr/local/cuda-9.2/lib64
+cflags = -DTORCH_EXTENSION_NAME=rcca -DTORCH_API_INCLUDE_EXTENSION_H -isystem /data/home/v-zhxia/S/anaconda3/envs/Py37Torch10/lib/python3.7/site-packages/torch/include -isystem /data/home/v-zhxia/S/anaconda3/envs/Py37Torch10/lib/python3.7/site-packages/torch/include/torch/csrc/api/include -isystem /data/home/v-zhxia/S/anaconda3/envs/Py37Torch10/lib/python3.7/site-packages/torch/include/TH -isystem /data/home/v-zhxia/S/anaconda3/envs/Py37Torch10/lib/python3.7/site-packages/torch/include/THC -isystem /usr/local/cuda/include -isystem /data/home/v-zhxia/S/anaconda3/envs/Py37Torch10/include/python3.7m -D_GLIBCXX_USE_CXX11_ABI=0 -fPIC -std=c++11 -O3
+cuda_flags = -DTORCH_EXTENSION_NAME=rcca -DTORCH_API_INCLUDE_EXTENSION_H -isystem /data/home/v-zhxia/S/anaconda3/envs/Py37Torch10/lib/python3.7/site-packages/torch/include -isystem /data/home/v-zhxia/S/anaconda3/envs/Py37Torch10/lib/python3.7/site-packages/torch/include/torch/csrc/api/include -isystem /data/home/v-zhxia/S/anaconda3/envs/Py37Torch10/lib/python3.7/site-packages/torch/include/TH -isystem /data/home/v-zhxia/S/anaconda3/envs/Py37Torch10/lib/python3.7/site-packages/torch/include/THC -isystem /usr/local/cuda/include -isystem /data/home/v-zhxia/S/anaconda3/envs/Py37Torch10/include/python3.7m -D_GLIBCXX_USE_CXX11_ABI=0 -D__CUDA_NO_HALF_OPERATORS__ -D__CUDA_NO_HALF_CONVERSIONS__ -D__CUDA_NO_HALF2_OPERATORS__ --compiler-options '-fPIC' --expt-extended-lambda -std=c++11
+ldflags = -shared -L/usr/local/cuda/lib64 -lcudart
 
 rule compile
   command = $cxx -MMD -MF $out.d $cflags -c $in -o $out
@@ -17,8 +17,8 @@ rule cuda_compile
 rule link
   command = $cxx $in $ldflags -o $out
 
-build lib_cffi.o: compile /mnt/data-1/qiang.zhou/ytbvos-2nd/CCNet/cc_att2/src/lib_cffi.cpp
-build ca.cuda.o: cuda_compile /mnt/data-1/qiang.zhou/ytbvos-2nd/CCNet/cc_att2/src/ca.cu
+build lib_cffi.o: compile /data/home/v-zhxia/T/CCNet/cc_attention/src/lib_cffi.cpp
+build ca.cuda.o: cuda_compile /data/home/v-zhxia/T/CCNet/cc_attention/src/ca.cu
 
 build rcca.so: link lib_cffi.o ca.cuda.o
 
