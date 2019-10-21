@@ -14,26 +14,31 @@ INPUT_SIZE=769,769
 OHEM=0
 GPU_IDS=0,1,2,3
 
-#variable ${LOCAL_OUTPUT} dir can save data of you job, after exec it will be upload to hadoop_out path 
-CUDA_VISIBLE_DEVICES=${GPU_IDS} python -m torch.distributed.launch --nproc_per_node=4 train.py \
-  --data-dir ${CS_PATH} \
-  --model ${MODEL} \
-  --random-mirror \
-  --random-scale \
-  --restore-from ${RESTORE_FROM} \
-  --input-size ${INPUT_SIZE} \
-  --gpu ${GPU_IDS} \
-  --learning-rate ${LR}  \
-  --weight-decay ${WD} \
-  --batch-size ${BS} \
-  --num-steps ${STEPS} \
-  --ohem ${OHEM} \
-  --snapshot-dir ${SNAPSHOT_HOME}/${MODEL}
+Judgement=$1
 
-#CUDA_VISIBLE_DEVICES=${GPU_IDS} python -m torch.distributed.launch --nproc_per_node=4 evaluate.py \
-#  --data-dir ${CS_PATH} \
-#  --model ${MODEL} \
-#  --input-size ${INPUT_SIZE} \
-#  --batch-size 4 \
-#  --restore-from ${SNAPSHOT_HOME}/${MODEL}/CS_scenes_${STEPS}.pth \
-#  --gpu 0
+if [[ ${Judgement} == 'train' ]]; then
+  CUDA_VISIBLE_DEVICES=${GPU_IDS} python -m torch.distributed.launch --nproc_per_node=4 train.py \
+    --data-dir ${CS_PATH} \
+    --model ${MODEL} \
+    --random-mirror \
+    --random-scale \
+    --restore-from ${RESTORE_FROM} \
+    --input-size ${INPUT_SIZE} \
+    --gpu ${GPU_IDS} \
+    --learning-rate ${LR}  \
+    --weight-decay ${WD} \
+    --batch-size ${BS} \
+    --num-steps ${STEPS} \
+    --ohem ${OHEM} \
+    --snapshot-dir ${SNAPSHOT_HOME}/${MODEL}
+fi
+
+if [[ ${Judgement} == 'evaluate' ]]; then
+  CUDA_VISIBLE_DEVICES=${GPU_IDS} python -m torch.distributed.launch --nproc_per_node=4 evaluate.py \
+    --data-dir ${CS_PATH} \
+    --model ${MODEL} \
+    --input-size ${INPUT_SIZE} \
+    --batch-size 4 \
+    --restore-from ${SNAPSHOT_HOME}/${MODEL}/CS_scenes_${STEPS}.pth \
+    --gpu 0
+fi
