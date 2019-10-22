@@ -1,11 +1,12 @@
 import torch.nn as nn
 import torch
+import torch.nn.functional as F
 affine_par = True
 import functools
 
 from inplace_abn import InPlaceABN, InPlaceABNSync
 from utils.pyt_utils import load_model
-from ops.dcn import DeformConv
+from ops import DeformConv, GumbelSigmoid
 from mmcv.cnn import constant_init
 
 BatchNorm2d = functools.partial(InPlaceABNSync, activation='identity')
@@ -35,6 +36,17 @@ class Bottleneck(nn.Module):
         self.dilation = dilation
         self.stride = stride
         self.DCN = DCN
+
+        self.sigmoid = nn.Sigmoid()
+        self.conv1_mask = nn.Conv2d()
+        constant_init()
+        self.conv1_gumbel = GumbelSigmoid()
+        self.conv2_mask = nn.Conv2d()
+        constant_init()
+        self.conv2_gumbel = GumbelSigmoid()
+
+        self.conv1_sigma = nn.Parameter()
+        self.conv2_sigma = nn.Parameter()
 
     def forward(self, x):
         residual = x
