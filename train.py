@@ -25,6 +25,7 @@ from utils.pyt_utils import decode_labels, inv_preprocess, decode_predictions
 from loss.criterion import CriterionDSN, CriterionOhemDSN
 from engine import Engine
 # from utils.encoding import DataParallelModel, DataParallelCriterion
+from mmcv.runner import get_dist_info
 
 
 IMG_MEAN = np.array((104.00698793,116.66876762,122.67891434), dtype=np.float32)
@@ -176,6 +177,7 @@ def main():
             num_classes=args.num_classes, criterion=criterion,
             pretrained_model=args.restore_from, recurrence=args.recurrence
         )
+        seg_model.train()
         # seg_model.init_weights()
 
         # group weight and config optimizer

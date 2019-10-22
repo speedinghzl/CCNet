@@ -6,8 +6,7 @@ import functools
 
 from encoding.nn import syncbn
 from libs import InPlaceABN, InPlaceABNSync
-
-from ops.dcn import GeneralizedAttention
+from utils.pyt_utils import load_model
 
 # BatchNorm2d = functools.partial(InPlaceABNSync, activation='none')
 # BatchNorm2d = functools.partial(syncbn.BatchNorm2d)
@@ -21,39 +20,17 @@ def outS(i):
 
 def conv3x3(in_planes, out_planes, stride=1):
     "3x3 convolution with padding"
-    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
-                     padding=1, bias=False)
+    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
 
 
 class Bottleneck(nn.Module):
     expansion = 4
-    def __init__(self, inplanes, planes, stride=1, dilation=1, downsample=None,
-                 use_non_local=False, **non_local_params):
+    def __init__(self, inplanes, planes, stride=1, dilation=1, downsample=None):
         super(Bottleneck, self).__init__()
-
 
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
         self.bn1 = BatchNorm2d(planes)
-
-        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride,
-                               padding=dilation, dilation=dilation, bias=False)
-
-        self.use_non_local = use_non_local
-        if self.use_non_local:
-            non_local_position = non_local_params['non_local_position']
-            non_local_params.pop('non_local_position', None)
-            # get non local params
-            non_local_planes = (planes * self.expansion) if (non_local_position == 'after_relu') else planes
-
-            self.non_local_block = GeneralizedAttention(in_dim=non_local_planes,
-                                                        out_dim=non_local_planes,
-                                                        share_with_conv2=(non_local_position == 'conv2'),
-                                                        conv2_weight=self.conv2.weight,
-                                                        conv2_bias=self.conv2.bias,
-                                                        conv2_stride=stride,
-                                                        conv2_dilation=dilation,
-                                                        **non_local_params)
-
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=dilation, dilation=dilation, bias=False)
         self.bn2 = BatchNorm2d(planes)
         self.conv3 = nn.Conv2d(planes, planes * 4, kernel_size=1, bias=False)
         self.bn3 = BatchNorm2d(planes * 4)
@@ -70,11 +47,7 @@ class Bottleneck(nn.Module):
         out = self.bn1(out)
         out = self.relu(out)
 
-        if self.use_non_local:
-            out = self.non_local_block(out)
-        else:
-            out = self.conv2(out)
-
+        out = self.conv2(out)
         out = self.bn2(out)
         out = self.relu(out)
 
@@ -90,48 +63,27 @@ class Bottleneck(nn.Module):
         return out
 
 class HeadModule(nn.Module):
-    def __init__(self, in_channels, out_channels, num_classes, use_non_local, **non_local_params):
+    def __init__(self, in_channels, out_channels, num_classes):
         super(HeadModule, self).__init__()
 
         inter_channels = in_channels // 4
-        self.conva = nn.Sequential(nn.Conv2d(in_channels, inter_channels, 3, padding=1, bias=False),
-                                   syncbn.BatchNorm2d(inter_channels))
+        self.conva = nn.Sequential(nn.Conv2d(in_channels, inter_channels, 3, padding=1, bias=False), syncbn.BatchNorm2d(inter_channels))
         self.convb = nn.Conv2d(inter_channels, inter_channels, 3, padding=1, bias=False)
         self.sync_bn_convb = syncbn.BatchNorm2d(inter_channels)
-
-        # self.conv1 = nn.Conv2d(in_channels+inter_channels, out_channels, kernel_size=3, padding=1, dilation=1, bias=False)
-
-        self.use_non_local = use_non_local
-        if self.use_non_local:
-            non_local_params.pop('non_local_position', None)
-            # non_local_params['kv_stride'] = 2
-            self.non_local_block = GeneralizedAttention(in_dim=inter_channels,
-                                                        out_dim=inter_channels,
-                                                        share_with_conv2=True,
-                                                        conv2_weight=self.convb.weight,
-                                                        conv2_bias=self.convb.bias,
-                                                        conv2_stride=1,
-                                                        **non_local_params)
-
 
         self.bottleneck = nn.Sequential(
             nn.Conv2d(in_channels + inter_channels, out_channels, kernel_size=3, padding=1, dilation=1, bias=False),
             syncbn.BatchNorm2d(out_channels),
             nn.Dropout2d(0.1),
             nn.Conv2d(512, num_classes, kernel_size=1, stride=1, padding=0, bias=True)
-            )
+        )
 
     def forward(self, x):
-
         output = self.conva(x)
-        if self.use_non_local:
-            output = self.non_local_block(output)
-        else:
-            output = self.convb(output)
+        output = self.convb(output)
         output = self.sync_bn_convb(output)
         output = torch.cat([x, output], 1)
         output = self.bottleneck(output)
-
 
         return output
 
@@ -159,59 +111,30 @@ class ResNet(nn.Module):
 
         self.layer1 = self._make_layer(block, 64, layers[0], use_non_local=False)
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2, use_non_local=False)
+        self.layer3 = self._make_layer(block, 256, layers[2], stride=1, dilation=2)
+        self.layer4 = self._make_layer(block, 512, layers[3], stride=1, dilation=4)
 
-        self.layer3 = self._make_layer(block, 256, layers[2], stride=1, dilation=2,
-                                       use_non_local=use_non_local,
-                                       num_non_local_block=num_non_local_block-layers[3],
-                                       **non_local_params)
-
-        self.layer4 = self._make_layer(block, 512, layers[3], stride=1, dilation=4,
-                                       use_non_local=use_non_local,
-                                       num_non_local_block=num_non_local_block,
-                                       **non_local_params)
-
-        self.head = HeadModule(2048, 512, num_classes, use_non_local=use_non_local_in_head, **non_local_params)
-
+        self.head = HeadModule(2048, 512, num_classes)
         self.dsn = nn.Sequential(
             nn.Conv2d(1024, 512, kernel_size=3, stride=1, padding=1),
             syncbn.BatchNorm2d(512),
             nn.Dropout2d(0.1),
             nn.Conv2d(512, num_classes, kernel_size=1, stride=1, padding=0, bias=True)
-            )
+        )
 
-
-    def _make_layer(self, block, planes, blocks,
-                    stride=1,
-                    dilation=1,
-                    use_non_local=False,
-                    num_non_local_block=999,
-                    **non_local_params):
-
+    def _make_layer(self, block, planes, blocks, stride=1, dilation=1):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
-                nn.Conv2d(self.inplanes, planes * block.expansion,
-                          kernel_size=1, stride=stride, bias=False),
-                BatchNorm2d(planes * block.expansion,affine = affine_par))
+                nn.Conv2d(self.inplanes, planes * block.expansion, kernel_size=1, stride=stride, bias=False),
+                BatchNorm2d(planes * block.expansion,affine = affine_par)
+            )
 
         layers = []
-
-        use_non_local_t = use_non_local if blocks <= num_non_local_block else False
-        layers.append(block(self.inplanes,
-                            planes,
-                            stride,dilation=dilation,
-                            downsample=downsample,
-                            use_non_local=use_non_local_t,
-                            **non_local_params))
-
+        layers.append(block(self.inplanes, planes, stride,dilation=dilation, downsample=downsample))
         self.inplanes = planes * block.expansion
         for i in range(1, blocks):
-            use_non_local_t = use_non_local if blocks - i <= num_non_local_block else False
-            layers.append(block(self.inplanes,
-                                planes,
-                                dilation=dilation,
-                                use_non_local=use_non_local_t,
-                                **non_local_params))
+            layers.append(block(self.inplanes, planes, dilation=dilation))
 
         return nn.Sequential(*layers)
 
@@ -229,8 +152,6 @@ class ResNet(nn.Module):
         return [x, x_dsn]
 
     def train(self, mode=True):
-        # import IPython
-        # IPython.embed()
         super(ResNet, self).train(mode)
         if self.bn_frozen:
             for m in self.modules():
@@ -253,24 +174,16 @@ class ResNet(nn.Module):
                 for param in mod.parameters():
                     param.requires_grad = False
         else:
-            print('frozen nothing')
+            print('[CHECK] Frozen Nothing')
 
-def Res_Deeplab(num_classes=21, num_layers=101,
-                use_non_local=False, num_non_local_block=999,
-                use_non_local_in_head=False, frozen_stages=-1, bn_frozen=False, **non_local_params):
+def Seg_Model(num_classes=21, num_layers=101, frozen_stages=-1, bn_frozen=False, pretrained_model=None):
     layers = []
-
     if num_layers == 50:
         layers = [3, 4, 6, 3]
     elif num_layers == 101:
         layers = [3, 4, 23, 3]
 
-    model = ResNet(Bottleneck, layers, num_classes,
-                   use_non_local=use_non_local,
-                   num_non_local_block=num_non_local_block,
-                   use_non_local_in_head=use_non_local_in_head,
-                   frozen_stages=frozen_stages,
-                   bn_frozen=bn_frozen,
-                   **non_local_params)
-
+    model = ResNet(Bottleneck, layers, num_classes, frozen_stages=frozen_stages, bn_frozen=bn_frozen)
+    if pretrained_model is not None:
+        model = load_model(model, pretrained_model)
     return model

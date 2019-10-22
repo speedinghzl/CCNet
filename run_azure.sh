@@ -5,16 +5,17 @@ date
 CS_PATH=/home/v-wesu/data/cityscapes/cityscapes.zip@/cityscapes
 RESTORE_FROM=/home/v-wesu/data/Pretrained_Model/resnet101-imagenet.pth
 SNAPSHOT_HOME=/home/v-wesu/data/CCNet_SnapShots
-MODEL=ccnet
 LR=1e-2
 WD=5e-4
 BS=8
 STEPS=60000
-INPUT_SIZE=769,769
 OHEM=0
 GPU_IDS=0,1,2,3
 
 Judgement=$1
+MODEL=$2
+INPUT_S=$3
+INPUT_SIZE=${INPUT_S},${INPUT_S}
 
 if [[ ${Judgement} == 'train' ]]; then
   CUDA_VISIBLE_DEVICES=${GPU_IDS} python -m torch.distributed.launch --nproc_per_node=4 train.py \
@@ -30,7 +31,7 @@ if [[ ${Judgement} == 'train' ]]; then
     --batch-size ${BS} \
     --num-steps ${STEPS} \
     --ohem ${OHEM} \
-    --snapshot-dir ${SNAPSHOT_HOME}/${MODEL}
+    --snapshot-dir ${SNAPSHOT_HOME}/${MODEL}_${INPUT_S}
 fi
 
 if [[ ${Judgement} == 'evaluate' ]]; then
@@ -39,6 +40,6 @@ if [[ ${Judgement} == 'evaluate' ]]; then
     --model ${MODEL} \
     --input-size ${INPUT_SIZE} \
     --batch-size 4 \
-    --restore-from ${SNAPSHOT_HOME}/${MODEL}/CS_scenes_${STEPS}.pth \
+    --restore-from ${SNAPSHOT_HOME}/${MODEL}_${INPUT_S}/CS_scenes_${STEPS}.pth \
     --gpu 0
 fi
