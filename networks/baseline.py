@@ -12,12 +12,10 @@ def conv3x3(in_planes, out_planes, stride=1):
     "3x3 convolution with padding"
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
 
-
 class Bottleneck(nn.Module):
     expansion = 4
     def __init__(self, inplanes, planes, stride=1, dilation=1, downsample=None):
         super(Bottleneck, self).__init__()
-
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
         self.bn1 = BatchNorm2d(planes)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=dilation, dilation=dilation, bias=False)
@@ -78,11 +76,12 @@ class HeadModule(nn.Module):
         return output
 
 class ResNet(nn.Module):
-    def __init__(self, block, layers, num_classes, frozen_stages, bn_frozen):
+    def __init__(self, block, layers, num_classes, frozen_stages, bn_frozen, criterion):
         super(ResNet, self).__init__()
         self.inplanes = 128
         self.frozen_stages = frozen_stages
         self.bn_frozen=bn_frozen
+        self.criterion = criterion
 
         self.conv1 = conv3x3(3, 64, stride=2)
         self.bn1 = BatchNorm2d(64)
@@ -127,7 +126,7 @@ class ResNet(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def forward(self, x, *kwargs):
+    def forward(self, x, labels=None):
         x = self.relu1(self.bn1(self.conv1(x)))
         x = self.relu2(self.bn2(self.conv2(x)))
         x = self.relu3(self.bn3(self.conv3(x)))
@@ -138,7 +137,12 @@ class ResNet(nn.Module):
         x_dsn = self.dsn(x)
         x = self.layer4(x)
         x = self.head(x)
-        return [x, x_dsn]
+        outs = [x, x_dsn]
+
+        if self.criterion is not None and labels is not None:
+            return self.criterion(outs, labels)
+        else:
+            return outs
 
     def train(self, mode=True):
         super(ResNet, self).train(mode)
@@ -165,15 +169,15 @@ class ResNet(nn.Module):
         else:
             print('[CHECK] Frozen Nothing')
 
-def Seg_Model(num_classes=21, num_layers=101, frozen_stages=-1, bn_frozen=False, pretrained_model=None,
-              criterion=None, recurrence=0):
+def Seg_Model(num_classes=21, num_layers=101, frozen_stages=-1, bn_frozen=False, pretrained_model=None, criterion=None,
+              **kwargs):
     layers = []
     if num_layers == 50:
         layers = [3, 4, 6, 3]
     elif num_layers == 101:
         layers = [3, 4, 23, 3]
 
-    model = ResNet(Bottleneck, layers, num_classes, frozen_stages=frozen_stages, bn_frozen=bn_frozen)
+    model = ResNet(Bottleneck, layers, num_classes, frozen_stages=frozen_stages, bn_frozen=bn_frozen, criterion=criterion)
     if pretrained_model is not None:
         model = load_model(model, pretrained_model)
     return model
