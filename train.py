@@ -191,7 +191,7 @@ def main():
         model = engine.data_parallel(seg_model)
         model.train()
 
-        if not os.path.exists(args.snapshot_dir):
+        if not os.path.exists(args.snapshot_dir) and get_dist_info()[0] == 0:
             os.makedirs(args.snapshot_dir)
             
         run = True
