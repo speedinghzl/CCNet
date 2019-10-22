@@ -165,7 +165,7 @@ class ResNet(nn.Module):
         else:
             print('[CHECK] Frozen Nothing')
 
-def Seg_Model(num_classes=21, num_layers=101, frozen_stages=-1, bn_frozen=False, pretrained_model=None, criterion=None):
+def Seg_Model(num_classes=21, num_layers=101, frozen_stages=-1, bn_frozen=False, pretrained_model=None, criterion=None, recurrence=0):
     layers = []
     if num_layers == 50:
         layers = [3, 4, 6, 3]
