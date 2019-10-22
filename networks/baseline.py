@@ -1,22 +1,12 @@
 import torch.nn as nn
 import torch
-import numpy as np
 affine_par = True
 import functools
 
-from encoding.nn import syncbn
-from libs import InPlaceABN, InPlaceABNSync
+from inplace_abn import InPlaceABN, InPlaceABNSync
 from utils.pyt_utils import load_model
 
-# BatchNorm2d = functools.partial(InPlaceABNSync, activation='none')
-# BatchNorm2d = functools.partial(syncbn.BatchNorm2d)
-BatchNorm2d = functools.partial(nn.BatchNorm2d)
-def outS(i):
-    i = int(i)
-    i = (i+1)/2
-    i = int(np.ceil((i+1)/2.0))
-    i = (i+1)/2
-    return i
+BatchNorm2d = functools.partial(InPlaceABNSync, activation='identity')
 
 def conv3x3(in_planes, out_planes, stride=1):
     "3x3 convolution with padding"
@@ -67,13 +57,13 @@ class HeadModule(nn.Module):
         super(HeadModule, self).__init__()
 
         inter_channels = in_channels // 4
-        self.conva = nn.Sequential(nn.Conv2d(in_channels, inter_channels, 3, padding=1, bias=False), syncbn.BatchNorm2d(inter_channels))
+        self.conva = nn.Sequential(nn.Conv2d(in_channels, inter_channels, 3, padding=1, bias=False), BatchNorm2d(inter_channels))
         self.convb = nn.Conv2d(inter_channels, inter_channels, 3, padding=1, bias=False)
-        self.sync_bn_convb = syncbn.BatchNorm2d(inter_channels)
+        self.sync_bn_convb = BatchNorm2d(inter_channels)
 
         self.bottleneck = nn.Sequential(
             nn.Conv2d(in_channels + inter_channels, out_channels, kernel_size=3, padding=1, dilation=1, bias=False),
-            syncbn.BatchNorm2d(out_channels),
+            BatchNorm2d(out_channels),
             nn.Dropout2d(0.1),
             nn.Conv2d(512, num_classes, kernel_size=1, stride=1, padding=0, bias=True)
         )
@@ -117,7 +107,7 @@ class ResNet(nn.Module):
         self.head = HeadModule(2048, 512, num_classes)
         self.dsn = nn.Sequential(
             nn.Conv2d(1024, 512, kernel_size=3, stride=1, padding=1),
-            syncbn.BatchNorm2d(512),
+            BatchNorm2d(512),
             nn.Dropout2d(0.1),
             nn.Conv2d(512, num_classes, kernel_size=1, stride=1, padding=0, bias=True)
         )
