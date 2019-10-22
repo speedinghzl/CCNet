@@ -5,6 +5,8 @@ import functools
 
 from inplace_abn import InPlaceABN, InPlaceABNSync
 from utils.pyt_utils import load_model
+from ops.dcn import DeformConv
+from mmcv.cnn import constant_init
 
 BatchNorm2d = functools.partial(InPlaceABNSync, activation='identity')
 
@@ -14,11 +16,16 @@ def conv3x3(in_planes, out_planes, stride=1):
 
 class Bottleneck(nn.Module):
     expansion = 4
-    def __init__(self, inplanes, planes, stride=1, dilation=1, downsample=None):
+    def __init__(self, inplanes, planes, stride=1, dilation=1, downsample=None, DCN=False):
         super(Bottleneck, self).__init__()
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, bias=False)
         self.bn1 = BatchNorm2d(planes)
-        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=dilation, dilation=dilation, bias=False)
+        if not DCN:
+            self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=stride, padding=dilation, dilation=dilation, bias=False)
+        else:
+            self.conv2 = DeformConv(planes, planes, kernel_size=3, stride=stride, padding=dilation, dilation=dilation, bias=False)
+            self.conv2_offset = nn.Conv2d(planes, 18, kernel_size=3, stride=stride, padding=dilation, dilation=dilation)
+            constant_init(self.conv2_offset, val=0)
         self.bn2 = BatchNorm2d(planes)
         self.conv3 = nn.Conv2d(planes, planes * 4, kernel_size=1, bias=False)
         self.bn3 = BatchNorm2d(planes * 4)
@@ -27,6 +34,7 @@ class Bottleneck(nn.Module):
         self.downsample = downsample
         self.dilation = dilation
         self.stride = stride
+        self.DCN = DCN
 
     def forward(self, x):
         residual = x
@@ -34,8 +42,11 @@ class Bottleneck(nn.Module):
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
-
-        out = self.conv2(out)
+        if self.DCN:
+            offset = self.conv2_offset(out)
+            out = self.conv2(out, offset)
+        else:
+            out = self.conv2(out)
         out = self.bn2(out)
         out = self.relu(out)
 
@@ -97,10 +108,10 @@ class ResNet(nn.Module):
         self.relu = nn.ReLU(inplace=False)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1, ceil_mode=True) # change
 
-        self.layer1 = self._make_layer(block, 64, layers[0])
-        self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
-        self.layer3 = self._make_layer(block, 256, layers[2], stride=1, dilation=2)
-        self.layer4 = self._make_layer(block, 512, layers[3], stride=1, dilation=4)
+        self.layer1 = self._make_layer(block, 64, layers[0], DCN=False)
+        self.layer2 = self._make_layer(block, 128, layers[1], stride=2, DCN=True)
+        self.layer3 = self._make_layer(block, 256, layers[2], stride=1, dilation=2, DCN=True)
+        self.layer4 = self._make_layer(block, 512, layers[3], stride=1, dilation=4, DCN=True)
 
         self.head = HeadModule(2048, 512, num_classes)
         self.dsn = nn.Sequential(
@@ -110,7 +121,7 @@ class ResNet(nn.Module):
             nn.Conv2d(512, num_classes, kernel_size=1, stride=1, padding=0, bias=True)
         )
 
-    def _make_layer(self, block, planes, blocks, stride=1, dilation=1):
+    def _make_layer(self, block, planes, blocks, stride=1, dilation=1, DCN=False):
         downsample = None
         if stride != 1 or self.inplanes != planes * block.expansion:
             downsample = nn.Sequential(
@@ -119,10 +130,10 @@ class ResNet(nn.Module):
             )
 
         layers = []
-        layers.append(block(self.inplanes, planes, stride,dilation=dilation, downsample=downsample))
+        layers.append(block(self.inplanes, planes, stride, dilation=dilation, downsample=downsample, DCN=DCN))
         self.inplanes = planes * block.expansion
         for i in range(1, blocks):
-            layers.append(block(self.inplanes, planes, dilation=dilation))
+            layers.append(block(self.inplanes, planes, dilation=dilation, DCN=DCN))
 
         return nn.Sequential(*layers)
 
