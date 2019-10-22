@@ -98,8 +98,8 @@ class ResNet(nn.Module):
         self.relu = nn.ReLU(inplace=False)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1, ceil_mode=True) # change
 
-        self.layer1 = self._make_layer(block, 64, layers[0], use_non_local=False)
-        self.layer2 = self._make_layer(block, 128, layers[1], stride=2, use_non_local=False)
+        self.layer1 = self._make_layer(block, 64, layers[0])
+        self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=1, dilation=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=1, dilation=4)
 
@@ -165,7 +165,8 @@ class ResNet(nn.Module):
         else:
             print('[CHECK] Frozen Nothing')
 
-def Seg_Model(num_classes=21, num_layers=101, frozen_stages=-1, bn_frozen=False, pretrained_model=None, criterion=None, recurrence=0):
+def Seg_Model(num_classes=21, num_layers=101, frozen_stages=-1, bn_frozen=False, pretrained_model=None,
+              criterion=None, recurrence=0):
     layers = []
     if num_layers == 50:
         layers = [3, 4, 6, 3]
