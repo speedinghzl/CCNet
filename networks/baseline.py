@@ -78,8 +78,7 @@ class HeadModule(nn.Module):
         return output
 
 class ResNet(nn.Module):
-    def __init__(self, block, layers, num_classes,
-                 use_non_local, num_non_local_block, use_non_local_in_head, frozen_stages, bn_frozen, **non_local_params):
+    def __init__(self, block, layers, num_classes, frozen_stages, bn_frozen):
         super(ResNet, self).__init__()
         self.inplanes = 128
         self.frozen_stages = frozen_stages
@@ -166,7 +165,7 @@ class ResNet(nn.Module):
         else:
             print('[CHECK] Frozen Nothing')
 
-def Seg_Model(num_classes=21, num_layers=101, frozen_stages=-1, bn_frozen=False, pretrained_model=None):
+def Seg_Model(num_classes=21, num_layers=101, frozen_stages=-1, bn_frozen=False, pretrained_model=None, criterion=None):
     layers = []
     if num_layers == 50:
         layers = [3, 4, 6, 3]
