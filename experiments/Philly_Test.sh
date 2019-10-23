@@ -2,9 +2,9 @@
 uname -a
 date
 
-CS_PATH=/data/home/zhez/data_local/cityscapes/cityscapes.zip@/cityscapes
-RESTORE_FROM=/data/home/zhez/data_local/model/resnet101-imagenet.pth
-SNAPSHOT_HOME=/data/home/zhez/CCNet/snapshot
+CS_PATH=/blob/data/cityscapes/cityscapes.zip@/cityscapes
+RESTORE_FROM=/blob/data/model/resnet101-imagenet.pth
+SNAPSHOT_HOME=/blob/data/CCNet/snapshot
 LR=1e-2
 WD=5e-4
 BS=4
