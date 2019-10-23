@@ -3,14 +3,14 @@ uname -a
 date
 
 CS_PATH=/blob/data/cityscapes/cityscapes.zip@/cityscapes
-RESTORE_FROM=/blob/data/model/resnet101-imagenet.pth
+RESTORE_FROM=/blob/data/pretrained/resnet101-imagenet.pth
 SNAPSHOT_HOME=/blob/data/CCNet/snapshot
 LR=1e-2
 WD=5e-4
 BS=4
 STEPS=60000
 OHEM=0
-GPU_IDS=0,1
+GPU_IDS=0,1,2,3
 
 Judgement=train
 MODEL=baseline
@@ -18,7 +18,7 @@ INPUT_S=769
 INPUT_SIZE=${INPUT_S},${INPUT_S}
 
 if [[ ${Judgement} == 'train' ]]; then
-  CUDA_VISIBLE_DEVICES=${GPU_IDS} python -m torch.distributed.launch --nproc_per_node=2 train.py \
+  CUDA_VISIBLE_DEVICES=${GPU_IDS} python -m torch.distributed.launch --nproc_per_node=4 train.py \
     --data-dir ${CS_PATH} \
     --model ${MODEL} \
     --random-mirror \
