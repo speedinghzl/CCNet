@@ -1,14 +1,20 @@
 # CCNet: Criss-Cross Attention for Semantic Segmentation
-By [Zilong Huang](http://speedinghzl.github.io), [Xinggang Wang](http://www.xinggangw.info/index.htm), [Lichao Huang](https://scholar.google.com/citations?user=F2e_jZMAAAAJ&hl=en), [Chang Huang](https://scholar.google.com/citations?user=IyyEKyIAAAAJ&hl=zh-CN), [Yunchao Wei](https://weiyc.github.io/), [Wenyu Liu](http://mclab.eic.hust.edu.cn/MCWebDisplay/PersonDetails.aspx?Name=Wenyu%20Liu).
 
-This code is a implementation of the experiments on Cityscapes in the [CCNet](http://openaccess.thecvf.com/content_ICCV_2019/papers/Huang_CCNet_Criss-Cross_Attention_for_Semantic_Segmentation_ICCV_2019_paper.pdf). 
+Paper Links: [**Our most recent TPAMI version with improvements**](https://ieeexplore.ieee.org/document/9133304) ([*Earlier ICCV version*](https://openaccess.thecvf.com/content_ICCV_2019/html/Huang_CCNet_Criss-Cross_Attention_for_Semantic_Segmentation_ICCV_2019_paper.html)).
+
+By [Zilong Huang](http://speedinghzl.github.io), [Xinggang Wang](http://www.xinggangw.info/index.htm), [Yunchao Wei](https://weiyc.github.io/), [Lichao Huang](https://scholar.google.com/citations?user=F2e_jZMAAAAJ&hl=en), [Chang Huang](https://scholar.google.com/citations?user=IyyEKyIAAAAJ&hl=zh-CN), [Humphrey Shi](https://www.humphreyshi.com/), [Wenyu Liu](http://mclab.eic.hust.edu.cn/MCWebDisplay/PersonDetails.aspx?Name=Wenyu%20Liu) and [Thomas S. Huang](http://ifp-uiuc.github.io/).
+
+### Updates
+
+**Update on 2020/07. Stay tuned for our newest TPAMI version of code, to be released soon!**
+
+**Update on 2019/08.The new version CCNet is released on branch [Pytorch-1.1](https://github.com/speedinghzl/CCNet/tree/pytorch-1.1) which supports Pytorch 1.0 or later and distributed multiprocessing training and testing**
+This current code is a implementation of the experiments on Cityscapes in the [CCNet v1](http://openaccess.thecvf.com/content_ICCV_2019/papers/Huang_CCNet_Criss-Cross_Attention_for_Semantic_Segmentation_ICCV_2019_paper.pdf). 
 We implement our method based on open source [pytorch segmentation toolbox](https://github.com/speedinghzl/pytorch-segmentation-toolbox). 
 
-**The new version CCNet is released on branch [Pytorch-1.1](https://github.com/speedinghzl/CCNet/tree/pytorch-1.1) which supports Pytorch 1.0 or later and distributed multiprocessing training and testing**
+**Update on 2018/12. Renew the code and release trained models with R=1,2. The trained model with R=2 achieves 79.74% on val set and 79.01% on test set with single scale testing.** 
 
-**Update on 2018/12/10. Renew the code and release trained models with R=1,2. The trained model with R=2 achieves 79.74% on val set and 79.01% on test set with single scale testing.** 
-
-**Update on 2018/11/28. Release Code.**
+**Update on 2018/11. Code released.**
 
 ## Introduction
 ![motivation of CCNet](https://user-images.githubusercontent.com/4509744/50546460-7df6ed00-0bed-11e9-9340-d026373b2cbe.png)
@@ -32,14 +38,28 @@ CCNet is released under the MIT License (refer to the LICENSE file for details).
 ### Citing CCNet
 
 If you find CCNet useful in your research, please consider citing:
+```BibTex
+    @article{huang2020ccnet,
+      author={Huang, Zilong and Wang, Xinggang and Wei, Yunchao and Huang, Lichao and Shi, Humphrey and Liu, Wenyu and Huang, Thomas S.},
+      journal={IEEE Transactions on Pattern Analysis and Machine Intelligence}, 
+      title={CCNet: Criss-Cross Attention for Semantic Segmentation}, 
+      year={2020},
+      month={},
+      volume={},
+      number={},
+      pages={1-1},
+      keywords={Semantic Segmentation;Graph Attention;Criss-Cross Network;Context Modeling},
+      doi={10.1109/TPAMI.2020.3007032},
+      ISSN={1939-3539}}
 
     @article{huang2018ccnet,
         title={CCNet: Criss-Cross Attention for Semantic Segmentation},
         author={Huang, Zilong and Wang, Xinggang and Huang, Lichao and Huang, Chang and Wei, Yunchao and Liu, Wenyu},
         booktitle={ICCV},
-        year={2019}
-    }
-    
+        year={2019}}
+```    
+
+## Instructions for Code V1:
 ### Requirements
 
 To install PyTorch==0.4.0 or 0.4.1, please refer to https://github.com/pytorch/pytorch#installation.   
@@ -90,7 +110,6 @@ All in one.
 ```bash
 ./run_local.sh YOUR_CS_PATH
 ``` 
-
 
 ### Models
 We run CCNet with *R=1,2* three times on cityscape dataset separately and report the results in the following table.
