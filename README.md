@@ -6,15 +6,15 @@ By [Zilong Huang](http://speedinghzl.github.io), [Xinggang Wang](http://www.xing
 
 ### Updates
 
-**Update on 2020/07. Stay tuned for our newest TPAMI version of code, to be released soon!**
+**2020/07: Stay tuned for our newest TPAMI version of code, to be released soon!**
 
-**Update on 2019/08.The new version CCNet is released on branch [Pytorch-1.1](https://github.com/speedinghzl/CCNet/tree/pytorch-1.1) which supports Pytorch 1.0 or later and distributed multiprocessing training and testing**
+**2019/08: The new version CCNet is released on branch [Pytorch-1.1](https://github.com/speedinghzl/CCNet/tree/pytorch-1.1) which supports Pytorch 1.0 or later and distributed multiprocessing training and testing**
 This current code is a implementation of the experiments on Cityscapes in the [CCNet v1](http://openaccess.thecvf.com/content_ICCV_2019/papers/Huang_CCNet_Criss-Cross_Attention_for_Semantic_Segmentation_ICCV_2019_paper.pdf). 
 We implement our method based on open source [pytorch segmentation toolbox](https://github.com/speedinghzl/pytorch-segmentation-toolbox). 
 
-**Update on 2018/12. Renew the code and release trained models with R=1,2. The trained model with R=2 achieves 79.74% on val set and 79.01% on test set with single scale testing.** 
+**2018/12: Renew the code and release trained models with R=1,2. The trained model with R=2 achieves 79.74% on val set and 79.01% on test set with single scale testing.** 
 
-**Update on 2018/11. Code released.**
+**2018/11: Code released.**
 
 ## Introduction
 ![motivation of CCNet](https://user-images.githubusercontent.com/4509744/50546460-7df6ed00-0bed-11e9-9340-d026373b2cbe.png)
