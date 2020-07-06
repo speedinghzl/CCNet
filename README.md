@@ -1,12 +1,12 @@
 # CCNet: Criss-Cross Attention for Semantic Segmentation
 
-Paper Links: [**Our most recent TPAMI version with improvements**](https://ieeexplore.ieee.org/document/9133304) ([*Earlier ICCV version*](https://openaccess.thecvf.com/content_ICCV_2019/html/Huang_CCNet_Criss-Cross_Attention_for_Semantic_Segmentation_ICCV_2019_paper.html)).
+Paper Links: [**Our most recent TPAMI version with improvements and extensions**](https://ieeexplore.ieee.org/document/9133304) ([*Earlier ICCV version*](https://openaccess.thecvf.com/content_ICCV_2019/html/Huang_CCNet_Criss-Cross_Attention_for_Semantic_Segmentation_ICCV_2019_paper.html)).
 
 By [Zilong Huang](http://speedinghzl.github.io), [Xinggang Wang](http://www.xinggangw.info/index.htm), [Yunchao Wei](https://weiyc.github.io/), [Lichao Huang](https://scholar.google.com/citations?user=F2e_jZMAAAAJ&hl=en), [Chang Huang](https://scholar.google.com/citations?user=IyyEKyIAAAAJ&hl=zh-CN), [Humphrey Shi](https://www.humphreyshi.com/), [Wenyu Liu](http://mclab.eic.hust.edu.cn/MCWebDisplay/PersonDetails.aspx?Name=Wenyu%20Liu) and [Thomas S. Huang](http://ifp-uiuc.github.io/).
 
 ### Updates
 
-**2020/07: Stay tuned for our newest TPAMI version of code with improvements (CityScapes test: 81.9%, ADE20K val: 45.76%, LIP Val: 55.47%). Code to be released soon!**
+**2020/07: Stay tuned for our newest TPAMI version of code with improvements (CityScapes test: 81.9%, ADE20K val: 45.76%, LIP Val: 55.47%) and extensions (3D-CCNet on video dataset CamVid test: 79.1%). Code to be released soon!**
 
 2019/08: The new version CCNet is released on branch [Pytorch-1.1](https://github.com/speedinghzl/CCNet/tree/pytorch-1.1) which supports Pytorch 1.0 or later and distributed multiprocessing training and testing
 This current code is a implementation of the experiments on Cityscapes in the [CCNet ICCV version](http://openaccess.thecvf.com/content_ICCV_2019/papers/Huang_CCNet_Criss-Cross_Attention_for_Semantic_Segmentation_ICCV_2019_paper.pdf). 
