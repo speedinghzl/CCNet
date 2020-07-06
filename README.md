@@ -39,27 +39,27 @@ CCNet is released under the MIT License (refer to the LICENSE file for details).
 
 If you find CCNet useful in your research, please consider citing:
 ```BibTex
-    @article{huang2020ccnet,
-      author={Huang, Zilong and Wang, Xinggang and Wei, Yunchao and Huang, Lichao and Shi, Humphrey and Liu, Wenyu and Huang, Thomas S.},
-      journal={IEEE Transactions on Pattern Analysis and Machine Intelligence}, 
-      title={CCNet: Criss-Cross Attention for Semantic Segmentation}, 
-      year={2020},
-      month={},
-      volume={},
-      number={},
-      pages={1-1},
-      keywords={Semantic Segmentation;Graph Attention;Criss-Cross Network;Context Modeling},
-      doi={10.1109/TPAMI.2020.3007032},
-      ISSN={1939-3539}}
+@article{huang2020ccnet,
+  author={Huang, Zilong and Wang, Xinggang and Wei, Yunchao and Huang, Lichao and Shi, Humphrey and Liu, Wenyu and Huang, Thomas S.},
+  journal={IEEE Transactions on Pattern Analysis and Machine Intelligence}, 
+  title={CCNet: Criss-Cross Attention for Semantic Segmentation}, 
+  year={2020},
+  month={},
+  volume={},
+  number={},
+  pages={1-1},
+  keywords={Semantic Segmentation;Graph Attention;Criss-Cross Network;Context Modeling},
+  doi={10.1109/TPAMI.2020.3007032},
+  ISSN={1939-3539}}
 
-    @article{huang2018ccnet,
-        title={CCNet: Criss-Cross Attention for Semantic Segmentation},
-        author={Huang, Zilong and Wang, Xinggang and Huang, Lichao and Huang, Chang and Wei, Yunchao and Liu, Wenyu},
-        booktitle={ICCV},
-        year={2019}}
+@article{huang2018ccnet,
+    title={CCNet: Criss-Cross Attention for Semantic Segmentation},
+    author={Huang, Zilong and Wang, Xinggang and Huang, Lichao and Huang, Chang and Wei, Yunchao and Liu, Wenyu},
+    booktitle={ICCV},
+    year={2019}}
 ```    
 
-## Instructions for Code V1:
+## Instructions for Code (2019/08 version):
 ### Requirements
 
 To install PyTorch==0.4.0 or 0.4.1, please refer to https://github.com/pytorch/pytorch#installation.   
@@ -127,7 +127,7 @@ The trained model with **R=2 79.74**  can also achieve about **79.01** mIOU on *
 | 2+OHEM | 78.67 & **80.00** & 79.83  | [80.00](https://drive.google.com/open?id=1eiX1Xf1o16DvQc3lkFRi4-Dk7IBVspUQ) |
 
 ## Acknowledgment
-The work was mainly done during an internship at [Horizon Robotics](http://en.horizon.ai/).
+We thank NSFC, ARC DECRA DE190101315, ARC DP200100938, HUST-Horizon Computer Vision ResearchCenter, and IBM-ILLINOIS Center for Cognitive ComputingSystems Research (C3SR).
 
 ## Thanks to the Third Party Libs
 Self-attention related methods:   
