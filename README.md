@@ -1,6 +1,6 @@
 # CCNet: Criss-Cross Attention for Semantic Segmentation
 
-Paper Links: [**Our most recent TPAMI version with improvements and extensions**](https://ieeexplore.ieee.org/document/9133304) ([*Earlier ICCV version*](https://openaccess.thecvf.com/content_ICCV_2019/html/Huang_CCNet_Criss-Cross_Attention_for_Semantic_Segmentation_ICCV_2019_paper.html)).
+Paper Links: [**Our most recent TPAMI version with improvements and extensions**](https://arxiv.org/abs/1811.11721) ([*Earlier ICCV version*](https://openaccess.thecvf.com/content_ICCV_2019/html/Huang_CCNet_Criss-Cross_Attention_for_Semantic_Segmentation_ICCV_2019_paper.html)).
 
 By [Zilong Huang](http://speedinghzl.github.io), [Xinggang Wang](http://www.xinggangw.info/index.htm), [Yunchao Wei](https://weiyc.github.io/), [Lichao Huang](https://scholar.google.com/citations?user=F2e_jZMAAAAJ&hl=en), [Chang Huang](https://scholar.google.com/citations?user=IyyEKyIAAAAJ&hl=zh-CN), [Humphrey Shi](https://www.humphreyshi.com/), [Wenyu Liu](http://mclab.eic.hust.edu.cn/MCWebDisplay/PersonDetails.aspx?Name=Wenyu%20Liu) and [Thomas S. Huang](http://ifp-uiuc.github.io/).
 
