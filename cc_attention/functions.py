@@ -51,7 +51,7 @@ class CrissCrossAttention(nn.Module):
 
 
 if __name__ == '__main__':
-    model = CC_module(64)
+    model = CrissCrossAttention(64)
     x = torch.randn(2, 64, 5, 6)
     out = model(x)
     print(out.shape)
