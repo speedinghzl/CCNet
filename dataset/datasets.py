@@ -217,12 +217,12 @@ class CSDataTestSet(data.Dataset):
         self.crop_h, self.crop_w = crop_size
         self.mean = mean
         # self.mean_bgr = np.array([104.00698793, 116.66876762, 122.67891434])
-        self.img_ids = [i_id.strip() for i_id in open(list_path)]
+        self.img_ids = [i_id.strip().split() for i_id in open(list_path)]
         self.files = [] 
         # for split in ["train", "trainval", "val"]:
         for item in self.img_ids:
-            image_path = item
-            name = osp.splitext(osp.basename(image_path))[0]
+            image_path, label_path = item
+            name = osp.splitext(osp.basename(label_path))[0]
             img_file = osp.join(self.root, image_path)
             self.files.append({
                 "img": img_file
@@ -238,6 +238,44 @@ class CSDataTestSet(data.Dataset):
         name = osp.splitext(osp.basename(datafiles["img"]))[0]
         image = np.asarray(image, np.float32)
         image -= self.mean
+        
+        img_h, img_w, _ = image.shape
+        pad_h = max(self.crop_h - img_h, 0)
+        pad_w = max(self.crop_w - img_w, 0)
+        if pad_h > 0 or pad_w > 0:
+            image = cv2.copyMakeBorder(image, 0, pad_h, 0, 
+                pad_w, cv2.BORDER_CONSTANT, 
+                value=(0.0, 0.0, 0.0))
+        image = image.transpose((2, 0, 1))
+        return image, name, size
+
+class CSDataTestSet(data.Dataset):
+    def __init__(self, root, list_path, crop_size=(505, 505)):
+        self.root = root
+        self.list_path = list_path
+        self.crop_h, self.crop_w = crop_size
+        # self.mean_bgr = np.array([104.00698793, 116.66876762, 122.67891434])
+        self.img_ids = [i_id.strip().split()[0] for i_id in open(list_path)]
+        self.files = [] 
+        # for split in ["train", "trainval", "val"]:
+        for image_path in self.img_ids:
+            name = osp.splitext(osp.basename(image_path))[0]
+            img_file = osp.join(self.root, image_path)
+            self.files.append({
+                "img": img_file
+            })
+
+    def __len__(self):
+        return len(self.files)
+
+    def __getitem__(self, index):
+        datafiles = self.files[index]
+        image = cv2.imread(datafiles["img"], cv2.IMREAD_COLOR)
+        image = cv2.resize(image, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
+        size = image.shape
+        name = osp.splitext(osp.basename(datafiles["img"]))[0]
+        image = np.asarray(image, np.float32)
+        image = (image - image.min()) / (image.max() - image.min())
         
         img_h, img_w, _ = image.shape
         pad_h = max(self.crop_h - img_h, 0)

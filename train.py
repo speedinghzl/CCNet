@@ -8,27 +8,24 @@ import pickle
 import cv2
 import torch.optim as optim
 import scipy.misc
+import torch.distributed as dist
 import torch.backends.cudnn as cudnn
 import sys
 import os
 from tqdm import tqdm
 import os.path as osp
-from networks.ccnet import Res_Deeplab
+import networks
 from dataset.datasets import CSDataSet
-#import matplotlib.pyplot as plt
+
 import random
-import timeit
+import time
 import logging
 from tensorboardX import SummaryWriter
-from utils.utils import decode_labels, inv_preprocess, decode_predictions
-from utils.criterion import CriterionCrossEntropy, CriterionOhemCrossEntropy, CriterionDSN, CriterionOhemDSN
-from utils.encoding import DataParallelModel, DataParallelCriterion
+from utils.pyt_utils import decode_labels, inv_preprocess, decode_predictions
+from loss.criterion import CriterionDSN, CriterionOhemDSN
+from engine import Engine
+# from utils.encoding import DataParallelModel, DataParallelCriterion
 
-torch_ver = torch.__version__[:3]
-if torch_ver == '0.3':
-    from torch.autograd import Variable
-
-start = timeit.default_timer()
 
 IMG_MEAN = np.array((104.00698793,116.66876762,122.67891434), dtype=np.float32)
 
@@ -40,13 +37,13 @@ INPUT_SIZE = '769,769'
 LEARNING_RATE = 1e-2
 MOMENTUM = 0.9
 NUM_CLASSES = 19
-NUM_STEPS = 60000
+NUM_STEPS = 40000
 POWER = 0.9
-RANDOM_SEED = 1234
-RESTORE_FROM = './dataset/resnet101-imagenet.pth'
+RANDOM_SEED = 12345
+RESTORE_FROM = './dataset/MS_DeepLab_resnet_pretrained_init.pth'
 SAVE_NUM_IMAGES = 2
 SAVE_PRED_EVERY = 10000
-SNAPSHOT_DIR = 'snapshots/'
+SNAPSHOT_DIR = './snapshots/'
 WEIGHT_DECAY = 0.0005
 
 def str2bool(v):
@@ -57,7 +54,7 @@ def str2bool(v):
     else:
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
-def get_arguments():
+def get_parser():
     """Parse all the arguments provided from the CLI.
     
     Returns:
@@ -88,6 +85,8 @@ def get_arguments():
                         help="Number of classes to predict (including background).")
     parser.add_argument("--num-steps", type=int, default=NUM_STEPS,
                         help="Number of training steps.")
+    parser.add_argument("--print-frequency", type=int, default=50,
+                        help="Number of training steps.") 
     parser.add_argument("--power", type=float, default=POWER,
                         help="Decay parameter to compute the learning rate.")
     parser.add_argument("--random-mirror", action="store_true",
@@ -108,10 +107,12 @@ def get_arguments():
                         help="Regularisation parameter for L2-loss.")
     parser.add_argument("--gpu", type=str, default='None',
                         help="choose gpu device.")
-    parser.add_argument("--recurrence", type=int, default=1,
+    parser.add_argument("--model", type=str, default='None',
+                        help="choose model.")
+    parser.add_argument("--num-workers", type=int, default=8,
+                        help="choose the number of workers.")
+    parser.add_argument("--recurrence", type=int, default=0,
                         help="choose the number of recurrence.")
-    parser.add_argument("--ft", type=bool, default=False,
-                        help="fine-tune the model with large input size.")
 
     parser.add_argument("--ohem", type=str2bool, default='False',
                         help="use hard negative mining")
@@ -119,17 +120,15 @@ def get_arguments():
                         help="choose the samples with correct probability underthe threshold.")
     parser.add_argument("--ohem-keep", type=int, default=200000,
                         help="choose the samples with correct probability underthe threshold.")
-    return parser.parse_args()
-
-args = get_arguments()
+    return parser
 
 
 def lr_poly(base_lr, iter, max_iter, power):
     return base_lr*((1-float(iter)/max_iter)**(power))
             
-def adjust_learning_rate(optimizer, i_iter):
+def adjust_learning_rate(optimizer, learning_rate, i_iter, max_iter, power):
     """Sets the learning rate to the initial LR divided by 5 at 60th, 120th and 160th epochs"""
-    lr = lr_poly(args.learning_rate, i_iter, args.num_steps, args.power)
+    lr = lr_poly(learning_rate, i_iter, max_iter, power)
     optimizer.param_groups[0]['lr'] = lr
     return lr
 
@@ -145,101 +144,101 @@ def set_bn_momentum(m):
 
 def main():
     """Create the model and start the training."""
-    writer = SummaryWriter(args.snapshot_dir)
-    
-    if not args.gpu == 'None':
-        os.environ["CUDA_VISIBLE_DEVICES"]=args.gpu
-    h, w = map(int, args.input_size.split(','))
-    input_size = (h, w)
+    parser = get_parser()
 
-    cudnn.enabled = True
+    with Engine(custom_parser=parser) as engine:
+        args = parser.parse_args()
 
-    # Create network.
-    deeplab = Res_Deeplab(num_classes=args.num_classes)
-    print(deeplab)
+        cudnn.benchmark = True
+        seed = args.random_seed
+        if engine.distributed:
+            seed = engine.local_rank
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed(seed)
 
-    saved_state_dict = torch.load(args.restore_from)
-    new_params = deeplab.state_dict().copy()
-    for i in saved_state_dict:
-        i_parts = i.split('.')
-        if not i_parts[0]=='fc':
-            new_params['.'.join(i_parts[0:])] = saved_state_dict[i] 
-    
-    deeplab.load_state_dict(new_params)
+        # data loader
+        h, w = map(int, args.input_size.split(','))
+        input_size = (h, w)
+        dataset = CSDataSet(args.data_dir, args.data_list, max_iters=None, crop_size=input_size, 
+                    scale=args.random_scale, mirror=args.random_mirror, mean=IMG_MEAN)
+        train_loader, train_sampler = engine.get_train_loader(dataset)
 
+        # config network and criterion
+        if args.ohem:
+            criterion = CriterionOhemDSN(thresh=args.ohem_thres, min_kept=args.ohem_keep)
+        else:
+            criterion = CriterionDSN() #CriterionCrossEntropy()
 
-    model = DataParallelModel(deeplab)
-    model.train()
-    model.float()
-    # model.apply(set_bn_momentum)
-    model.cuda()    
+        # model = Res_Deeplab(args.num_classes, criterion=criterion,
+        #         pretrained_model=args.restore_from)
+        seg_model = eval('networks.' + args.model + '.Seg_Model')(
+            num_classes=args.num_classes, criterion=criterion,
+            pretrained_model=args.restore_from, recurrence=args.recurrence
+        )
+        # seg_model.init_weights()
 
-    if args.ohem:
-        criterion = CriterionOhemDSN(thresh=args.ohem_thres, min_kept=args.ohem_keep)
-    else:
-        criterion = CriterionDSN() #CriterionCrossEntropy()
-    criterion = DataParallelCriterion(criterion)
-    criterion.cuda()
-    
-    cudnn.benchmark = True
-
-    if not os.path.exists(args.snapshot_dir):
-        os.makedirs(args.snapshot_dir)
-
-
-    trainloader = data.DataLoader(CSDataSet(args.data_dir, args.data_list, max_iters=args.num_steps*args.batch_size, crop_size=input_size, 
-                    scale=args.random_scale, mirror=args.random_mirror, mean=IMG_MEAN), 
-                    batch_size=args.batch_size, shuffle=True, num_workers=4, pin_memory=True)
-
-    optimizer = optim.SGD([{'params': filter(lambda p: p.requires_grad, deeplab.parameters()), 'lr': args.learning_rate }], 
-                lr=args.learning_rate, momentum=args.momentum,weight_decay=args.weight_decay)
-    optimizer.zero_grad()
-
-    for i_iter, batch in enumerate(trainloader):
-        i_iter += args.start_iters
-        images, labels, _, _ = batch
-        images = images.cuda()
-        labels = labels.long().cuda()
-        if torch_ver == "0.3":
-            images = Variable(images)
-            labels = Variable(labels)
-
+        # group weight and config optimizer
+        optimizer = optim.SGD([{'params': filter(lambda p: p.requires_grad, seg_model.parameters()), 'lr': args.learning_rate}], 
+                lr=args.learning_rate, momentum=args.momentum, weight_decay=args.weight_decay)
         optimizer.zero_grad()
-        lr = adjust_learning_rate(optimizer, i_iter)
-        preds = model(images, args.recurrence)
 
-        loss = criterion(preds, labels)
-        loss.backward()
-        optimizer.step()
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        seg_model.to(device)
 
-        if i_iter % 100 == 0:
-            writer.add_scalar('learning_rate', lr, i_iter)
-            writer.add_scalar('loss', loss.data.cpu().numpy(), i_iter)
+        model = engine.data_parallel(seg_model)
+        model.train()
 
-        # if i_iter % 5000 == 0:
-        #     images_inv = inv_preprocess(images, args.save_num_images, IMG_MEAN)
-        #     labels_colors = decode_labels(labels, args.save_num_images, args.num_classes)
-        #     if isinstance(preds, list):
-        #         preds = preds[0]
-        #     preds_colors = decode_predictions(preds, args.save_num_images, args.num_classes)
-        #     for index, (img, lab) in enumerate(zip(images_inv, labels_colors)):
-        #         writer.add_image('Images/'+str(index), img, i_iter)
-        #         writer.add_image('Labels/'+str(index), lab, i_iter)
-        #         writer.add_image('preds/'+str(index), preds_colors[index], i_iter)
+        if not os.path.exists(args.snapshot_dir):
+            os.makedirs(args.snapshot_dir)
+            
+        run = True
+        global_iteration = args.start_iters
+        avgloss = 0
 
-        print('iter = {} of {} completed, loss = {}'.format(i_iter, args.num_steps, loss.data.cpu().numpy()))
+        while run:
+            epoch = global_iteration // len(train_loader)
+            if engine.distributed:
+                train_sampler.set_epoch(epoch)
 
-        if i_iter >= args.num_steps-1:
-            print('save model ...')
-            torch.save(deeplab.state_dict(),osp.join(args.snapshot_dir, 'CS_scenes_'+str(args.num_steps)+'.pth'))
-            break
+            bar_format = '{desc}[{elapsed}<{remaining},{rate_fmt}]'
+            pbar = tqdm(range(len(train_loader)), file=sys.stdout,
+                        bar_format=bar_format)
+            dataloader = iter(train_loader)
 
-        if i_iter % args.save_pred_every == 0:
-            print('taking snapshot ...')
-            torch.save(deeplab.state_dict(),osp.join(args.snapshot_dir, 'CS_scenes_'+str(i_iter)+'.pth'))     
+            for idx in pbar:
+                global_iteration += 1
 
-    end = timeit.default_timer()
-    print(end-start,'seconds')
+                images, labels, _, _ = dataloader.next()
+                images = images.cuda(non_blocking=True)
+                labels = labels.long().cuda(non_blocking=True)
+
+                optimizer.zero_grad()
+                lr = adjust_learning_rate(optimizer, args.learning_rate, global_iteration-1, args.num_steps, args.power)
+                loss = model(images, labels)
+
+                reduce_loss = engine.all_reduce_tensor(loss)
+                loss.backward()
+                optimizer.step()
+
+
+                print_str = 'Epoch{}/Iters{}'.format(epoch, global_iteration) \
+                        + ' Iter{}/{}:'.format(idx + 1, len(train_loader)) \
+                        + ' lr=%.2e' % lr \
+                        + ' loss=%.2f' % reduce_loss.item()
+
+                pbar.set_description(print_str, refresh=False)
+
+                if (not engine.distributed) or (engine.distributed and engine.local_rank == 0):
+                    if global_iteration % args.save_pred_every == 0 or global_iteration >= args.num_steps:
+                        print('taking snapshot ...')
+                        torch.save(seg_model.state_dict(),osp.join(args.snapshot_dir, 'CS_scenes_'+str(global_iteration)+'.pth')) 
+
+                if global_iteration >= args.num_steps:
+                    run = False
+                    break    
+
+
 
 if __name__ == '__main__':
     main()
