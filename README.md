@@ -6,7 +6,7 @@ By [Zilong Huang](http://speedinghzl.github.io), [Xinggang Wang](http://www.xing
 
 ### Updates
 
-**2020/07: Stay tuned for our newest TPAMI version of code with improvements (CityScapes test: 81.9%, ADE20K val: 45.76%, LIP Val: 55.47%) and extensions (3D-CCNet on video dataset CamVid test: 79.1%). Code to be released soon!**
+****2021/02: The pure python implementation of CCNet is released in the branch [pure-python](https://github.com/speedinghzl/CCNet/tree/pure-python). Thanks [Serge-weihao](https://github.com/Serge-weihao).****
 
 2019/08: The new version CCNet is released on branch [Pytorch-1.1](https://github.com/speedinghzl/CCNet/tree/pytorch-1.1) which supports Pytorch 1.0 or later and distributed multiprocessing training and testing
 This current code is a implementation of the experiments on Cityscapes in the [CCNet ICCV version](http://openaccess.thecvf.com/content_ICCV_2019/papers/Huang_CCNet_Criss-Cross_Attention_for_Semantic_Segmentation_ICCV_2019_paper.pdf). 
@@ -70,19 +70,20 @@ CUDA 8.0
 
 ### Compiling
 
-Some parts of **InPlace-ABN** and **Criss-Cross Attention** have native CUDA implementations, which must be compiled with the following commands:
 ```bash
-cd libs
-sh build.sh
-python build.py
+# Install **Pytorch**
+$ conda install pytorch torchvision -c pytorch
 
-cd ../cc_attention
-sh build.sh
-python build.py
-``` 
-The `build.sh` script assumes that the `nvcc` compiler is available in the current system search path.
-The CUDA kernels are compiled for `sm_50`, `sm_52` and `sm_61` by default.
-To change this (_e.g._ if you are using a Kepler GPU), please edit the `CUDA_GENCODE` variable in `build.sh`.
+# Install **Apex**
+$ git clone https://github.com/NVIDIA/apex
+$ cd apex
+$ pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+
+# Install **Inplace-ABN**
+$ git clone https://github.com/mapillary/inplace_abn.git
+$ cd inplace_abn
+$ python setup.py install
+```
 
 ### Dataset and pretrained model
 
