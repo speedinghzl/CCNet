@@ -1,5 +1,3 @@
-#import encoding.nn as nn
-#import encoding.functions as F
 import torch.nn as nn
 from torch.nn import functional as F
 import math
@@ -12,11 +10,11 @@ import functools
 
 import sys, os
 
-from libs import InPlaceABN, InPlaceABNSync
 from cc_attention import CrissCrossAttention
+from utils.pyt_utils import load_model
 
-
-BatchNorm2d = functools.partial(InPlaceABNSync, activation='none')
+from inplace_abn import InPlaceABN, InPlaceABNSync
+BatchNorm2d = functools.partial(InPlaceABNSync, activation='identity')
 
 def outS(i):
     i = int(i)
@@ -125,7 +123,7 @@ class RCCAModule(nn.Module):
         return output
 
 class ResNet(nn.Module):
-    def __init__(self, block, layers, num_classes):
+    def __init__(self, block, layers, num_classes, criterion, recurrence):
         self.inplanes = 128
         super(ResNet, self).__init__()
         self.conv1 = conv3x3(3, 64, stride=2)
@@ -154,26 +152,8 @@ class ResNet(nn.Module):
             nn.Dropout2d(0.1),
             nn.Conv2d(512, num_classes, kernel_size=1, stride=1, padding=0, bias=True)
             )
-
-    def get_learnable_parameters(self, freeze_layers=[True,True,True,True,False,False,False]):
-        lr_parameters = []
-
-        if not freeze_layers[0]:
-            for i in [self.conv1, self.bn1, self.conv2, self.bn2, self.conv3, self.bn3]:
-                params = i.named_parameters()
-                for name, p in params:
-                    print(name)
-                    lr_parameters.append(p)
-
-        layers = [self.layer1, self.layer2, self.layer3, self.layer4, self.layer5, self.layer6]
-        for freeze, layer in zip(freeze_layers[1:], layers):
-            if not freeze:
-                params = layer.named_parameters()
-                for name, p in params:
-                    print(name)
-                    lr_parameters.append(p)
-
-        return lr_parameters
+        self.criterion = criterion
+        self.recurrence = recurrence
 
     def _make_layer(self, block, planes, blocks, stride=1, dilation=1, multi_grid=1):
         downsample = None
@@ -192,7 +172,7 @@ class ResNet(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def forward(self, x, recurrence=1):
+    def forward(self, x, labels=None):
         x = self.relu1(self.bn1(self.conv1(x)))
         x = self.relu2(self.bn2(self.conv2(x)))
         x = self.relu3(self.bn3(self.conv3(x)))
@@ -202,11 +182,19 @@ class ResNet(nn.Module):
         x = self.layer3(x)
         x_dsn = self.dsn(x)
         x = self.layer4(x)
-        x = self.head(x, recurrence)
-        return [x, x_dsn]
+        x = self.head(x, self.recurrence)
+        outs = [x, x_dsn]
+
+        if self.criterion is not None and labels is not None:
+            return self.criterion(outs, labels)
+        else:
+            return outs
 
 
-def Res_Deeplab(num_classes=21):
-    model = ResNet(Bottleneck,[3, 4, 23, 3], num_classes)
+def Seg_Model(num_classes, criterion=None, pretrained_model=None, recurrence=0, **kwargs):
+    model = ResNet(Bottleneck,[3, 4, 23, 3], num_classes, criterion, recurrence)
+
+    if pretrained_model is not None:
+        model = load_model(model, pretrained_model)
+
     return model
-
