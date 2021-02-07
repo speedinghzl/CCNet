@@ -6,7 +6,7 @@ By [Zilong Huang](http://speedinghzl.github.io), [Xinggang Wang](http://www.xing
 
 ### Updates
 
-****2021/02: The pure python implementation of CCNet is released in the branch [pure-python](https://github.com/speedinghzl/CCNet/tree/pure-python). Thanks for [Serge-weihao](https://github.com/Serge-weihao).****
+****2021/02: The pure python implementation of CCNet is released in the branch [pure-python](https://github.com/speedinghzl/CCNet/tree/pure-python). Thanks [Serge-weihao](https://github.com/Serge-weihao).****
 
 2019/08: The new version CCNet is released on branch [Pytorch-1.1](https://github.com/speedinghzl/CCNet/tree/pytorch-1.1) which supports Pytorch 1.0 or later and distributed multiprocessing training and testing
 This current code is a implementation of the experiments on Cityscapes in the [CCNet ICCV version](http://openaccess.thecvf.com/content_ICCV_2019/papers/Huang_CCNet_Criss-Cross_Attention_for_Semantic_Segmentation_ICCV_2019_paper.pdf). 
